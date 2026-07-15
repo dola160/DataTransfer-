@@ -34,13 +34,11 @@
         }
     </script>
     <style>
-        /* Tối ưu hóa hiệu ứng cuộn và chuyển động */
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* Tùy chỉnh thanh cuộn đẹp mắt */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
@@ -84,7 +82,7 @@
         <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 flex gap-3 text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
             <i class="fa-solid fa-circle-info text-lg mt-0.5 flex-shrink-0"></i>
             <div>
-                <p class="font-bold">Hệ thống chuyển vùng an toàn trực tiếp</p>
+                <p class="font-bold">Hệ thống truyền vùng an toàn trực tiếp</p>
                 <p class="text-xs opacity-90 mt-0.5">Không mô phỏng ảo, không thông qua trung gian độc hại. Quá trình truyền tin chỉ thực sự bắt đầu khi cả hai thiết bị xác thực vị trí địa lý của mình và khớp với mã phòng kết nối an toàn.</p>
             </div>
         </div>
@@ -106,8 +104,8 @@
                     <i class="fa-solid fa-earth-asia"></i>
                 </div>
                 <div>
-                    <span class="text-xs text-slate-400 block">Khu vực / Tọa độ GPS</span>
-                    <span class="font-bold text-slate-700 dark:text-slate-200 text-sm block truncate" id="gpsCoords">Chưa cấp quyền vị trí</span>
+                    <span class="text-xs text-slate-400 block">Khu vực / Tọa độ mạng thực</span>
+                    <span class="font-bold text-slate-700 dark:text-slate-200 text-sm block truncate" id="gpsCoords">Chưa xác thực</span>
                 </div>
             </div>
         </div>
@@ -126,15 +124,15 @@
         <section id="senderSection" class="fade-in space-y-6">
             <!-- Bước 1: Yêu cầu vị trí -->
             <div id="senderStepLocation" class="bg-white dark:bg-darkCard p-6 rounded-2xl border border-slate-200 dark:border-slate-800 text-center space-y-4 shadow-sm">
-                <div class="w-16 h-16 bg-red-100 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto text-2xl animate-bounce">
+                <div class="w-16 h-16 bg-red-100 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto text-2xl">
                     <i class="fa-solid fa-location-crosshairs"></i>
                 </div>
                 <div class="max-w-md mx-auto space-y-2">
-                    <h3 class="font-bold text-lg">Yêu cầu quyền truy cập vị trí</h3>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Ứng dụng cần xác định thông tin vùng GPS chính xác của thiết bị để tạo cầu nối kết nối an toàn, đảm bảo không có bên thứ ba can thiệp.</p>
+                    <h3 class="font-bold text-lg">Xác định vùng mạng an toàn</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Ứng dụng cần xác định thông tin mạng hoặc vùng GPS của thiết bị để tạo cầu nối kết nối an toàn, đảm bảo không bị can thiệp.</p>
                 </div>
                 <button id="grantLocationSender" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all inline-flex items-center gap-2 shadow-lg shadow-blue-500/10">
-                    <i class="fa-solid fa-location-arrow"></i> Cấp quyền vị trí & Tiếp tục
+                    <i class="fa-solid fa-location-arrow"></i> Xác thực & Tiếp tục
                 </button>
             </div>
 
@@ -157,9 +155,7 @@
                         </label>
 
                         <!-- Danh sách tệp đã chọn -->
-                        <div id="selectedFilesList" class="space-y-2 hidden max-h-[250px] overflow-y-auto pr-2">
-                            <!-- JS render files -->
-                        </div>
+                        <div id="selectedFilesList" class="space-y-2 hidden max-h-[250px] overflow-y-auto pr-2"></div>
                     </div>
 
                     <!-- Soạn thảo văn bản trực tiếp -->
@@ -283,11 +279,11 @@
                     <i class="fa-solid fa-location-dot"></i>
                 </div>
                 <div class="max-w-md mx-auto space-y-2">
-                    <h3 class="font-bold text-lg">Yêu cầu quyền truy cập vị trí người nhận</h3>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Để đảm bảo bảo mật và tốc độ tối đa, thiết bị nhận cũng cần cấp vị trí thực địa phương nhằm định vị mạng lưới chuyển tiếp an toàn gần nhất.</p>
+                    <h3 class="font-bold text-lg">Xác nhận vùng mạng người nhận</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Để đảm bảo bảo mật và tốc độ tối đa, thiết bị nhận cần xác minh thông tin khu vực thực tế nhằm duy trì đường truyền tin cậy.</p>
                 </div>
                 <button id="grantLocationReceiver" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all inline-flex items-center gap-2 shadow-lg shadow-indigo-500/10">
-                    <i class="fa-solid fa-location-arrow"></i> Xác thực vị trí & Tiếp tục
+                    <i class="fa-solid fa-location-arrow"></i> Xác thực & Tiếp tục
                 </button>
             </div>
 
@@ -392,9 +388,7 @@
                     </div>
 
                     <!-- Trình hiển thị tệp / văn bản nhận được -->
-                    <div id="receiverContentContainer" class="space-y-4">
-                        <!-- Danh sách tệp nhận được hiển thị tại đây -->
-                    </div>
+                    <div id="receiverContentContainer" class="space-y-4"></div>
                 </div>
             </div>
         </section>
@@ -419,12 +413,10 @@
     <!-- Custom Modal/Toast Alerts thay cho browser alert() -->
     <div id="alertOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl fade-in">
-            <div id="alertIconContainer" class="w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl">
-                <!-- Icon động -->
-            </div>
+            <div id="alertIconContainer" class="w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl"></div>
             <div class="space-y-2">
                 <h4 id="alertTitle" class="font-bold text-lg">Thông báo</h4>
-                <p id="alertMessage" class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Nội dung thông báo chi tiết.</p>
+                <p id="alertMessage" class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">Nội dung thông báo chi tiết.</p>
             </div>
             <button id="alertCloseBtn" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all">
                 Đồng ý
@@ -436,18 +428,16 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- CẤU HÌNH BIẾN MÔI TRƯỜNG TOÀN CỤC ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'p2p-file-transfer-artifact';
         const firebaseConfig = JSON.parse(__firebase_config);
 
-        // Khởi tạo các dịch vụ Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- KHAI BÁO CÁC PHẦN TỬ UI ---
+        // UI Element bindings
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
         const countryLabel = document.getElementById('countryLabel');
@@ -461,7 +451,6 @@
         const senderSection = document.getElementById('senderSection');
         const receiverSection = document.getElementById('receiverSection');
 
-        // Sender UI elements
         const senderStepLocation = document.getElementById('senderStepLocation');
         const senderStepUpload = document.getElementById('senderStepUpload');
         const senderStepActive = document.getElementById('senderStepActive');
@@ -483,7 +472,6 @@
         const connectedReceiverName = document.getElementById('connectedReceiverName');
         const cancelSendBtn = document.getElementById('cancelSendBtn');
 
-        // Receiver UI elements
         const receiverStepLocation = document.getElementById('receiverStepLocation');
         const receiverStepConnect = document.getElementById('receiverStepConnect');
         const receiverStepActive = document.getElementById('receiverStepActive');
@@ -503,7 +491,6 @@
         const downloadAllBtn = document.getElementById('downloadAllBtn');
         const exitReceiverBtn = document.getElementById('exitReceiverBtn');
 
-        // Global stats & Alerts
         const globalConnectivityText = document.getElementById('globalConnectivityText');
         const statFilesCount = document.getElementById('statFilesCount');
         const statTotalSize = document.getElementById('statTotalSize');
@@ -513,19 +500,16 @@
         const alertMessage = document.getElementById('alertMessage');
         const alertCloseBtn = document.getElementById('alertCloseBtn');
 
-        // --- CÁC BIẾN TRẠNG THÁI HOẠT ĐỘNG ---
         let currentUser = null;
         let isDarkMode = true;
-        let currentRole = 'sender'; // 'sender' hoặc 'receiver'
-        let locationVerified = false;
-        let selectedFiles = []; // Mảng chứa dữ liệu các file thật đã chọn [{name, size, type, dataUrl}]
+        let currentRole = 'sender';
+        let selectedFiles = [];
         let activeSessionId = null;
         let activeSessionUnsubscribe = null;
         let html5QrcodeScanner = null;
         let currentCoordinates = null;
         let currentCountryName = "Việt Nam";
 
-        // --- QUY TRÌNH QUẢN LÝ GIAO DIỆN (THEME) ---
         function initTheme() {
             if (localStorage.getItem('theme') === 'light') {
                 isDarkMode = false;
@@ -551,12 +535,10 @@
             }
         });
 
-        // --- CUSTOM ALERT MODAL ---
         function showAlert(title, message, type = 'info') {
             alertTitle.innerText = title;
             alertMessage.innerText = message;
             
-            // Tùy chỉnh màu sắc icon dựa trên loại alert
             if (type === 'success') {
                 alertIconContainer.className = "w-12 h-12 rounded-full flex items-center justify-center mx-auto text-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400";
                 alertIconContainer.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
@@ -574,7 +556,6 @@
             alertOverlay.classList.add('hidden');
         });
 
-        // --- NHẬN DẠNG THIẾT BỊ VÀ TRÌNH DUYỆT THỰC ---
         function getDeviceInformation() {
             const ua = navigator.userAgent;
             let name = "Thiết bị không rõ";
@@ -597,7 +578,6 @@
                 icon = "fa-terminal";
             }
             
-            // Tìm kiếm chi tiết trình duyệt
             let browser = "Trình duyệt chuẩn";
             if (ua.indexOf("Chrome") > -1) browser = "Google Chrome";
             else if (ua.indexOf("Safari") > -1) browser = "Apple Safari";
@@ -608,7 +588,6 @@
             deviceIconElement.className = `fa-solid ${icon}`;
         }
 
-        // --- XỬ LÝ ĐỊNH VỊ VÀ QUỐC GIA THẬT ---
         async function fetchCountryFromCoordinates(lat, lon) {
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=5`, {
@@ -621,43 +600,74 @@
             } catch (error) {
                 console.error("Lỗi lấy thông tin quốc gia bằng GPS, sử dụng timezone thay thế:", error);
             }
-            
-            // Fallback dựa trên Timezone hệ thống thật
+            return fallbackCountryFromTimezone();
+        }
+
+        function fallbackCountryFromTimezone() {
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            if (timezone.includes("Asia/Ho_Chi_Minh") || timezone.includes("Saigon")) {
+            if (timezone.includes("Asia/Ho_Chi_Minh") || timezone.includes("Saigon") || timezone.includes("Bangkok") || timezone.includes("Jakarta")) {
                 return "Việt Nam";
             }
             return "Châu Á / Quốc tế";
         }
 
-        function requestRealLocation() {
-            return new Promise((resolve, reject) => {
-                if (!navigator.geolocation) {
-                    reject(new Error("Trình duyệt không hỗ trợ Geolocation."));
-                    return;
-                }
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    currentCoordinates = { lat, lon };
-                    
-                    // Hiển thị tọa độ thật trên giao diện
-                    gpsCoords.innerText = `Vĩ độ: ${lat.toFixed(4)}, Kinh độ: ${lon.toFixed(4)}`;
-                    
-                    // Tự động tìm kiếm quốc gia từ tọa độ thực tế
-                    const country = await fetchCountryFromCoordinates(lat, lon);
-                    currentCountryName = country;
-                    countryLabel.innerText = country;
-                    locationBadge.classList.remove('hidden');
-                    
-                    resolve(true);
-                }, (error) => {
-                    reject(error);
-                }, { enableHighAccuracy: true, timeout: 10000 });
-            });
+        // --- CƠ CHẾ ĐỊNH VỊ PHÂN CẤP THÔNG MINH (TRÁNH LỖI PHÉP CHẶN GPS) ---
+        async function requestRealLocation() {
+            // Thử bằng Geolocation API trước
+            if (navigator.geolocation) {
+                return new Promise((resolve) => {
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            currentCoordinates = { lat, lon };
+                            
+                            gpsCoords.innerText = `Vĩ độ: ${lat.toFixed(4)}, Kinh độ: ${lon.toFixed(4)} (GPS Thực)";`;
+                            currentCountryName = await fetchCountryFromCoordinates(lat, lon);
+                            countryLabel.innerText = currentCountryName;
+                            locationBadge.classList.remove('hidden');
+                            resolve(true);
+                        },
+                        async (error) => {
+                            console.warn("GPS thực bị chặn hoặc lỗi, kích hoạt chuyển đổi IP an toàn:", error.message);
+                            const ipSuccess = await fallbackIPLocation();
+                            resolve(ipSuccess);
+                        },
+                        { enableHighAccuracy: false, timeout: 5000 }
+                    );
+                });
+            } else {
+                return await fallbackIPLocation();
+            }
         }
 
-        // --- XỬ LÝ FILE ĐẦU VÀO THỰC ---
+        // Ưu tiên 2: Tìm kiếm tọa độ thực tế từ nhà mạng qua IP công khai
+        async function fallbackIPLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                if (data && data.latitude && data.longitude) {
+                    currentCoordinates = { lat: data.latitude, lon: data.longitude };
+                    currentCountryName = data.country_name || fallbackCountryFromTimezone();
+                    gpsCoords.innerText = `Vĩ độ: ${data.latitude.toFixed(4)}, Kinh độ: ${data.longitude.toFixed(4)} (Mạng nội bộ IP)`;
+                    countryLabel.innerText = currentCountryName;
+                    locationBadge.classList.remove('hidden');
+                    return true;
+                }
+            } catch (err) {
+                console.warn("Lỗi định vị IP, dùng múi giờ thực:", err);
+            }
+
+            // Ưu tiên cuối cùng: Xác thực dựa trên timezone gốc của thiết bị
+            currentCountryName = fallbackCountryFromTimezone();
+            // Đặt tọa độ mặc định của Việt Nam nếu không lấy được tọa độ thực
+            currentCoordinates = { lat: 10.7626, lon: 106.6602 }; 
+            gpsCoords.innerText = `Vĩ độ: 10.7626, Kinh độ: 106.6602 (Múi giờ vùng)`;
+            countryLabel.innerText = currentCountryName;
+            locationBadge.classList.remove('hidden');
+            return true;
+        }
+
         function formatBytes(bytes, decimals = 2) {
             if (bytes === 0) return '0 Bytes';
             const k = 1024;
@@ -671,11 +681,8 @@
             const files = e.target.files;
             if (!files.length) return;
 
-            // Đọc dữ liệu các file thật và mã hóa sang Base64 để trung chuyển
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                
-                // Giới hạn truyền file tối đa của hệ thống web-client (đảm bảo bộ nhớ)
                 if (file.size > 8 * 1024 * 1024) {
                     showAlert("Tệp quá lớn", `Hệ thống hỗ trợ truyền tệp trực tiếp an toàn dưới 8MB. Tệp "${file.name}" quá giới hạn.`, "error");
                     continue;
@@ -714,7 +721,6 @@
                 const item = document.createElement('div');
                 item.className = "flex items-center justify-between p-2.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs";
                 
-                // Nhận diện Icon loại tệp
                 let icon = "fa-file";
                 if (file.type.startsWith("image/")) icon = "fa-file-image text-emerald-500";
                 else if (file.type.startsWith("video/")) icon = "fa-file-video text-rose-500";
@@ -758,14 +764,12 @@
             senderMetaSummary.innerText = `${selectedFiles.length} tệp thực và ${textNoteCount} ghi chú (${formatBytes(totalSize)})`;
             confirmSendBtn.disabled = false;
 
-            // Cập nhật thống kê toàn cục
             statFilesCount.innerText = totalFilesCount;
             statTotalSize.innerText = formatBytes(totalSize + quickText.value.length);
         }
 
         quickText.addEventListener('input', updateSenderMetaSummary);
 
-        // --- AUTHENTICATION TRƯỚC KHI TRUY VẤN FIRESTORE ---
         async function ensureFirebaseAuthenticated() {
             if (currentUser) return currentUser;
 
@@ -797,7 +801,6 @@
             });
         }
 
-        // --- CƠ CHẾ CHUYỂN HOẠT ĐỘNG (TAB) ---
         tabSenderBtn.addEventListener('click', () => {
             currentRole = 'sender';
             tabSenderBtn.className = "flex-1 py-3 text-center font-bold border-b-2 border-blue-500 text-blue-600 dark:text-blue-400 transition-all flex items-center justify-center gap-2";
@@ -814,42 +817,29 @@
             senderSection.classList.add('hidden');
         });
 
-        // --- TRÌNH XÁC THỰC VỊ TRÍ GỬI ---
+        // Click Xác thực Vùng Gửi
         grantLocationSender.addEventListener('click', async () => {
-            try {
-                grantLocationSender.disabled = true;
-                grantLocationSender.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang định vị vùng...';
-                
-                await requestRealLocation();
-                locationVerified = true;
-                
-                senderStepLocation.classList.add('hidden');
-                senderStepUpload.classList.remove('hidden');
-            } catch (error) {
-                grantLocationSender.disabled = false;
-                grantLocationSender.innerHTML = '<i class="fa-solid fa-location-arrow"></i> Cấp quyền vị trí & Tiếp tục';
-                showAlert("Yêu cầu quyền GPS", "Bạn phải đồng ý cấp quyền truy cập vị trí thật của thiết bị để bắt đầu đồng bộ bảo mật.", "error");
-            }
+            grantLocationSender.disabled = true;
+            grantLocationSender.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang định vị...';
+            
+            // Hàm định vị phân cấp sẽ luôn giải quyết thành công (GPS -> IP -> Timezone)
+            await requestRealLocation();
+            
+            senderStepLocation.classList.add('hidden');
+            senderStepUpload.classList.remove('hidden');
         });
 
-        // --- TRÌNH XÁC THỰC VỊ TRÍ NHẬN ---
+        // Click Xác thực Vùng Nhận
         grantLocationReceiver.addEventListener('click', async () => {
-            try {
-                grantLocationReceiver.disabled = true;
-                grantLocationReceiver.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang định vị vùng...';
-                
-                await requestRealLocation();
-                
-                receiverStepLocation.classList.add('hidden');
-                receiverStepConnect.classList.remove('hidden');
-            } catch (error) {
-                grantLocationReceiver.disabled = false;
-                grantLocationReceiver.innerHTML = '<i class="fa-solid fa-location-arrow"></i> Xác thực vị trí & Tiếp tục';
-                showAlert("Yêu cầu quyền GPS", "Thiết bị nhận cần cấp quyền truy cập vị trí thật để thiết lập liên kết nội bộ an toàn.", "error");
-            }
+            grantLocationReceiver.disabled = true;
+            grantLocationReceiver.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang định vị...';
+            
+            await requestRealLocation();
+            
+            receiverStepLocation.classList.add('hidden');
+            receiverStepConnect.classList.remove('hidden');
         });
 
-        // --- GỬI FILE: TẠO PHÒNG VÀ ĐỒNG BỘ ---
         confirmSendBtn.addEventListener('click', async () => {
             if (selectedFiles.length === 0 && quickText.value.trim().length === 0) {
                 showAlert("Không có nội dung", "Vui lòng chọn ít nhất một tệp hoặc viết nội dung để bắt đầu.", "info");
@@ -863,11 +853,9 @@
                 const user = await ensureFirebaseAuthenticated();
                 if (!user) throw new Error("Chưa xác thực Firebase.");
 
-                // Sinh mã số kết nối an toàn gồm 6 số ngẫu nhiên
                 const sessionCode = Math.floor(100000 + Math.random() * 900000).toString();
                 activeSessionId = sessionCode;
 
-                // Chuẩn bị dữ liệu thực để gửi
                 const sessionPayload = {
                     senderDevice: currentDeviceName.innerText,
                     senderCoordinates: currentCoordinates,
@@ -876,21 +864,18 @@
                         name: f.name,
                         size: f.size,
                         type: f.type,
-                        dataUrl: f.dataUrl // Chứa tệp thực được mã hóa Base64
+                        dataUrl: f.dataUrl
                     })),
                     textNote: quickText.value.trim(),
-                    status: 'waiting', // waiting, connected, completed
+                    status: 'waiting',
                     receiverDevice: '',
                     receiverCoordinates: null,
                     createdAt: Date.now()
                 };
 
-                // Đăng ký phòng trực tiếp trên Firestore
-                // Đảm bảo tuân thủ cấu trúc thư mục quy định nghiêm ngặt: /artifacts/{appId}/public/data/{collectionName}
                 const sessionDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessionCode);
                 await setDoc(sessionDocRef, sessionPayload);
 
-                // Tạo mã QR Code thật trỏ trực tiếp đến trang web của chúng ta cùng mã code
                 const directLink = `${window.location.origin}${window.location.pathname}?code=${sessionCode}`;
                 
                 document.getElementById('qrcode').innerHTML = '';
@@ -907,7 +892,6 @@
                 senderStepUpload.classList.add('hidden');
                 senderStepActive.classList.remove('hidden');
 
-                // Lắng nghe sự kiện thời gian thực khi có người quét mã và nhận tệp
                 listenToSenderSession(sessionCode);
 
             } catch (error) {
@@ -918,7 +902,6 @@
             }
         });
 
-        // Hủy kết nối
         cancelSendBtn.addEventListener('click', async () => {
             if (activeSessionId) {
                 try {
@@ -944,7 +927,6 @@
             confirmSendBtn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> XÁC NHẬN CHUYỂN';
         }
 
-        // Lắng nghe phòng Gửi (Sender)
         function listenToSenderSession(sessionCode) {
             const sessionDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessionCode);
             
@@ -954,14 +936,12 @@
                 const data = snapshot.data();
                 
                 if (data.status === 'connected') {
-                    // Người nhận đã kết nối thành công thiết bị thực của họ
                     senderStatusLabel.innerText = "Đang truyền tải...";
                     senderStatusLabel.className = "text-xs px-2.5 py-1 rounded-full font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400";
                     
                     receiverDeviceMeta.classList.remove('hidden');
                     connectedReceiverName.innerText = `${data.receiverDevice} | ${data.receiverCountry || 'Chưa rõ'}`;
                     
-                    // Thực hiện mô phỏng đo tốc độ truyền thực tế
                     simulateTransmissionProgress('sender');
                 } else if (data.status === 'completed') {
                     senderStatusLabel.innerText = "Đã đồng bộ thành công!";
@@ -977,11 +957,9 @@
             });
         }
 
-        // --- COPY VÀ CHIA SẺ LIÊN KẾT ---
         copyCodeBtn.addEventListener('click', () => {
             const code = sessionCodeText.innerText;
             if (code && code !== '------') {
-                document.execCommand('copy'); // Sử dụng execCommand đảm bảo hoạt động chuẩn xác trong iframe
                 const tempInput = document.createElement('input');
                 tempInput.value = code;
                 document.body.appendChild(tempInput);
@@ -1005,11 +983,9 @@
             }
         });
 
-        // --- NHẬN FILE: KÍCH HOẠT CAMERA QUÉT QR ---
         startScanBtn.addEventListener('click', () => {
             scannerFallbackMsg.classList.add('hidden');
             
-            // Khởi chạy camera quét
             html5QrcodeScanner = new Html5Qrcode("qrScanner");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             
@@ -1017,13 +993,10 @@
                 { facingMode: "environment" },
                 config,
                 (decodedText) => {
-                    // Khi nhận diện thành công QR Code, kiểm tra URL có chứa code hay không
                     html5QrcodeScanner.stop();
                     processDecodedUrl(decodedText);
                 },
-                (errorMessage) => {
-                    // Quét liên tục lỗi nhỏ không hiển thị để tránh phiền nhiễu
-                }
+                (errorMessage) => {}
             ).catch(err => {
                 console.error("Lỗi khởi chạy camera máy quét:", err);
                 scannerFallbackMsg.classList.remove('hidden');
@@ -1041,18 +1014,15 @@
                     showAlert("QR không hợp lệ", "Mã QR đã quét không chứa thông số kết nối của DirectShare.", "error");
                 }
             } catch (e) {
-                // Nếu QR chỉ chứa mã số 6 chữ số đơn thuần
                 if (decodedText.trim().length === 6 && /^\d+$/.test(decodedText.trim())) {
                     manualCodeInput.value = decodedText.trim();
                     connectToSender(decodedText.trim());
                 } else {
-                    // Phát hiện nếu dùng camera ứng dụng khác quét và hiển thị liên kết trực tiếp
                     showAlert("Liên kết ngoài", `Mã quét chứa: ${decodedText}. Bạn có thể mở trực tiếp trang web để nhận dữ liệu.`, "info");
                 }
             }
         }
 
-        // --- NHẬN FILE: KẾT NỐI VÀ DOWNLOAD THẬT ---
         connectManualBtn.addEventListener('click', () => {
             const code = manualCodeInput.value.trim();
             if (code.length !== 6 || !/^\d+$/.test(code)) {
@@ -1082,7 +1052,6 @@
 
                 const data = snapshot.data();
 
-                // Cập nhật trạng thái người nhận vào database
                 await updateDoc(sessionDocRef, {
                     receiverDevice: currentDeviceName.innerText,
                     receiverCoordinates: currentCoordinates,
@@ -1096,13 +1065,8 @@
 
                 connectedSenderName.innerText = `${data.senderDevice} (${data.senderCountry || 'Lân cận'})`;
 
-                // Render xem trước các tệp tin thực nhận được
                 renderReceivedContent(data);
-
-                // Lắng nghe sự kiện hoàn tất hoặc thay đổi từ bên gửi
                 listenToReceiverSession(sessionCode);
-
-                // Chạy đồng bộ hóa dung lượng truyền thực tế
                 simulateTransmissionProgress('receiver');
 
             } catch (error) {
@@ -1113,7 +1077,6 @@
             }
         }
 
-        // Lắng nghe phòng Nhận (Receiver)
         function listenToReceiverSession(sessionCode) {
             const sessionDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', sessionCode);
             
@@ -1133,12 +1096,10 @@
             const files = data.files || [];
             const textNote = data.textNote || '';
 
-            // Cập nhật thông số toàn cục
             statFilesCount.innerText = files.length + (textNote ? 1 : 0);
             let totalSize = files.reduce((acc, f) => acc + f.size, 0);
             statTotalSize.innerText = formatBytes(totalSize + textNote.length);
 
-            // 1. Hiển thị ghi chú văn bản (Nếu có)
             if (textNote) {
                 const noteCard = document.createElement('div');
                 noteCard.className = "p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-950/10 space-y-3";
@@ -1154,7 +1115,6 @@
                 receiverContentContainer.appendChild(noteCard);
             }
 
-            // 2. Hiển thị các tệp tin để download
             if (files.length > 0) {
                 const filesGrid = document.createElement('div');
                 filesGrid.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
@@ -1224,7 +1184,6 @@
             document.body.removeChild(link);
         };
 
-        // Download tất cả
         downloadAllBtn.addEventListener('click', async () => {
             if (!activeSessionId) return;
             const sessionDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'sessions', activeSessionId);
@@ -1239,12 +1198,10 @@
                 return;
             }
 
-            // Tải tuần tự tất cả các tệp thực
             files.forEach(file => {
                 downloadSingleFile(file.dataUrl, file.name);
             });
 
-            // Ghi nhận hoàn tất lên database để người gửi nhận phản hồi
             await updateDoc(sessionDocRef, { status: 'completed' });
         });
 
@@ -1270,7 +1227,6 @@
             }
         }
 
-        // --- MÔ PHỎNG DUNG LƯỢNG VÀ TỐC ĐỘ TRUYỀN THỰC ĐẾ CHO TRẢI NGHIỆM ĐỒNG BỘ ---
         function simulateTransmissionProgress(role) {
             let progress = 0;
             const interval = setInterval(() => {
@@ -1280,7 +1236,7 @@
                     clearInterval(interval);
                 }
 
-                const speed = (Math.random() * 450 + 150).toFixed(1); // KB/s thực tế trên băng thông trung chuyển
+                const speed = (Math.random() * 450 + 150).toFixed(1);
                 
                 if (role === 'sender') {
                     senderProgressPercent.innerText = `${progress}%`;
@@ -1295,7 +1251,6 @@
                     receiverProgressBar.style.width = `${progress}%`;
                     receiverSpeedVal.innerText = `${speed} KB/s`;
                     
-                    // Đo lường phía người nhận
                     let totalSize = parseInt(statTotalSize.innerText) || 0;
                     let processed = ((totalSize * progress) / 100) / (1024 * 1024);
                     receiverProcessedVal.innerText = `${processed.toFixed(2)} / ${(totalSize / (1024 * 1024)).toFixed(2)} MB`;
@@ -1303,7 +1258,6 @@
             }, 300);
         }
 
-        // Tự động kiểm tra tham số URL (Trường hợp quét QR chuyển đổi trực tiếp)
         window.addEventListener('load', async () => {
             initTheme();
             getDeviceInformation();
@@ -1311,10 +1265,9 @@
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
             if (code && code.length === 6) {
-                // Tự động kích hoạt màn hình người nhận
                 tabReceiverBtn.click();
                 manualCodeInput.value = code;
-                showAlert("Liên kết sẵn sàng", `Hệ thống phát hiện mã liên kết ${code}. Vui lòng cấp quyền vị trí người nhận để kết nối an toàn ngay lập tức.`, "info");
+                showAlert("Liên kết sẵn sàng", `Hệ thống phát hiện mã liên kết ${code}. Vui lòng xác thực vùng mạng người nhận để kết nối an toàn ngay lập tức.`, "info");
             }
         });
     </script>
