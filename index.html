@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển Dữ Liệu Giữa Thiết Bị</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .role-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .role-icon {
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 30px 20px;
+            min-height: 400px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .permission-status {
+            background: #f0f4ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .permission-status.granted {
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .permission-status.denied {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .status-icon {
+            font-size: 18px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px;
+            background: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .file-input-label:hover {
+            background: #e5e7eb;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .file-list {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #667eea;
+            font-size: 13px;
+        }
+
+        .file-item-name {
+            flex: 1;
+            word-break: break-word;
+            color: #374151;
+        }
+
+        .file-item-size {
+            color: #9ca3af;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+
+        .file-item-remove {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .file-item-remove:hover {
+            background: #fecaca;
+        }
+
+        .qr-container {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .qr-container.active {
+            display: block;
+        }
+
+        .qr-code {
+            max-width: 300px;
+            width: 100%;
+            height: auto;
+            margin: 0 auto;
+            border: 10px solid white;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .qr-info {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .video-preview {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .video-preview.active {
+            display: block;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .camera-controls button {
+            flex: 1;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
+            text-align: center;
+        }
+
+        .status-message.active {
+            display: block;
+        }
+
+        .status-message.success {
+            background: #f0fdf4;
+            color: #166534;
+            border-left: 4px solid #10b981;
+        }
+
+        .status-message.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+        }
+
+        .status-message.info {
+            background: #f0f4ff;
+            color: #1e40af;
+            border-left: 4px solid #667eea;
+        }
+
+        .transfer-progress {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .transfer-progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .role-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .qr-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Chuyển Dữ Liệu Thiết Bị</h1>
+            <p>Kết nối thực tế · Không giả lập · Hoạt động 100% trên trình duyệt</p>
+        </div>
+
+        <div class="role-selector">
+            <button class="role-btn active" data-role="sender">
+                <span class="role-icon">📤</span>
+                NGƯỜI GỬI
+            </button>
+            <button class="role-btn" data-role="receiver">
+                <span class="role-icon">📥</span>
+                NGƯỜI NHẬN
+            </button>
+        </div>
+
+        <div class="content">
+            <div class="status-message" id="statusMessage"></div>
+
+            <!-- SENDER SECTION -->
+            <section class="section active" id="senderSection">
+                <div class="info-box">
+                    ℹ️ Bạn là người gửi. Tải lên tệp và tạo mã QR để người nhận kết nối.
+                </div>
+
+                <div id="senderPermissions"></div>
+
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" multiple>
+                    <label for="fileInput" class="file-input-label">
+                        <span>📁</span>
+                        <span>Nhấp để tải lên hoặc kéo thả tệp</span>
+                    </label>
+                </div>
+
+                <div class="file-list" id="fileList" style="display: none;"></div>
+
+                <button class="btn btn-primary" id="requestLocationBtn">
+                    <span>📍</span>
+                    <span>Yêu cầu quyền truy cập vị trí</span>
+                </button>
+
+                <button class="btn btn-success" id="startSenderBtn">
+                    <span>✅</span>
+                    <span>Xác nhận bắt đầu & tạo mã QR</span>
+                </button>
+
+                <div class="qr-container" id="qrContainer">
+                    <h3 style="margin-bottom: 15px; color: #374151;">Mã QR kết nối</h3>
+                    <div id="qrCode"></div>
+                    <div class="qr-info">
+                        <p>Quét mã này bằng thiết bị nhận</p>
+                        <p style="margin-top: 10px; font-size: 12px; color: #999;">ID kết nối: <span id="connectionId" style="font-weight: bold;"></span></p>
+                    </div>
+                </div>
+
+                <div class="transfer-progress" id="transferProgress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" id="stopSenderBtn" style="display: none;">
+                    <span>⏹️</span>
+                    <span>Dừng kết nối</span>
+                </button>
+            </section>
+
+            <!-- RECEIVER SECTION -->
+            <section class="section" id="receiverSection">
+                <div class="info-box">
+                    ℹ️ Bạn là người nhận. Yêu cầu quyền truy cập camera để quét mã QR.
+                </div>
+
+                <div id="receiverPermissions"></div>
+
+                <button class="btn btn-primary" id="requestCameraBtn">
+                    <span>📷</span>
+                    <span>Yêu cầu quyền truy cập camera</span>
+                </button>
+
+                <video class="video-preview" id="cameraPreview" playsinline></video>
+
+                <div class="camera-controls" style="display: none;" id="cameraControls">
+                    <button class="btn btn-secondary" id="stopCameraBtn">
+                        <span>⏹️</span>
+                        <span>Dừng camera</span>
+                    </button>
+                </div>
+
+                <div class="qr-container" id="scanResultContainer" style="display: none;">
+                    <h3 style="margin-bottom: 15px; color: #374151;">📍 Đã quét QR</h3>
+                    <div id="scanResult" style="text-align: left; font-size: 13px; color: #374151;"></div>
+                </div>
+
+                <button class="btn btn-primary" id="requestLocationBtnReceiver">
+                    <span>📍</span>
+                    <span>Yêu cầu quyền truy cập vị trí</span>
+                </button>
+
+                <button class="btn btn-warning" id="bluetoothBtn" style="display: none;">
+                    <span>📶</span>
+                    <span>Kết nối Bluetooth</span>
+                </button>
+
+                <div class="file-list" id="receivedFilesList" style="display: none;">
+                    <h3 style="margin-bottom: 10px; color: #374151; font-size: 14px;">📥 Tệp đã nhận:</h3>
+                    <div id="receivedFilesContainer"></div>
+                </div>
+
+                <div class="transfer-progress" id="transferProgressReceiver">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFillReceiver"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progressTextReceiver">Chờ kết nối...</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" id="stopReceiverBtn" style="display: none;">
+                    <span>⏹️</span>
+                    <span>Dừng kết nối</span>
+                </button>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqrcode/0.0.1/jsqrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
