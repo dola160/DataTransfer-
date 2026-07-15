@@ -257,13 +257,13 @@
 
             <!-- Khu vực chứa mã QR (Ẩn đi trước khi kích hoạt) -->
             <div id="qr-container-wrapper" class="hidden mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center">
-              <div class="bg-white p-3 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700">
+              <div class="bg-white p-3 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 animate-fade-in">
                 <div id="qrcode" class="w-48 h-48"></div>
               </div>
               <div class="mt-4 text-center">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">MÃ KẾT NỐI THỦ CÔNG</span>
                 <div class="flex items-center gap-2 justify-center mt-1">
-                  <span id="manual-code" class="text-lg font-mono font-bold text-primary-500 bg-primary-500/5 px-3 py-1 rounded-lg border border-primary-500/20">------</span>
+                  <span id="manual-code" class="text-lg font-mono font-bold text-primary-500 bg-primary-50/50 dark:bg-slate-900 px-3 py-1 rounded-lg border border-primary-500/20">------</span>
                   <button id="btn-copy-code" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition" title="Sao chép">
                     <i data-lucide="copy" class="w-4 h-4"></i>
                   </button>
@@ -316,6 +316,13 @@
                 <button id="btn-manual-connect" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 rounded-xl transition flex items-center justify-center">
                   Kết nối
                 </button>
+              </div>
+              <div id="error-fallback-tip" class="hidden mt-3 p-3 bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 rounded-xl text-xs flex flex-col gap-1.5">
+                <div class="font-bold flex items-center gap-1">
+                  <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Lỗi kết nối máy chủ Signaling!
+                </div>
+                <p>Thiết bị nhận không thể liên kết thông qua kênh tự động. Vui lòng kiểm tra kết nối mạng 3G/4G/Wifi hoặc nhấp thử lại bên dưới.</p>
+                <button onclick="retryConnectionWithFallback()" class="mt-1 bg-rose-500 text-white font-bold py-1 px-3 rounded-lg hover:bg-rose-600 transition text-center self-start text-[11px]">Thử lại bằng Server Dự phòng</button>
               </div>
             </div>
           </div>
@@ -440,17 +447,23 @@
       scanner: null
     };
 
-    // WebSocket công cộng hoặc Signaling Server tạm thời để WebRTC bắt tay (SDP Offer/Answer)
-    // Để chạy thật 100% không giả lập, chúng ta dùng một kênh Signaling Broker công cộng siêu nhẹ:
-    const SIGNALING_SERVER_BASE = 'https://broker.onrender.com' || 'https://signaling.airshare.live'; 
-    // Fallback: Nếu không kết nối được server ngoài, chúng ta sẽ tự đóng gói SDP thành mã QR nén để quét nhận (Độc lập 100%)
-    
+    // Danh sách các signaling server công cộng để luân phiên thay thế khi một server lỗi
+    const SIGNALING_SERVERS = [
+      'https://api.allorigins.win/raw?url=https://broker.onrender.com', // Bypass CORS qua proxy
+      'https://broker.onrender.com',
+      'https://signaling.airshare.live',
+      'https://signal-broker.onrender.com'
+    ];
+    let activeSignalingIndex = 0;
+
     // WebRTC STUN Servers cấu hình chuẩn
     const rtcConfig = {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' }
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' }
       ]
     };
 
@@ -460,8 +473,6 @@
       initTheme();
       checkDeepLink();
       setupEventListeners();
-      
-      // Tự động yêu cầu quyền vị trí khi khởi chạy để tối ưu hóa mạng
       requestLocationPermission(false);
     });
 
@@ -546,7 +557,7 @@
       }
     });
 
-    // --- KIỂM TRA DEEP LINK (QUÉT BẰNG APP NGOÀI) ---
+    // --- KIỂM TRA DEEP LINK ---
     function checkDeepLink() {
       const urlParams = new URLSearchParams(window.location.search);
       const connectId = urlParams.get('join');
@@ -554,10 +565,9 @@
         showToast('Được mời kết nối', `Phát hiện yêu cầu kết nối từ thiết bị: ${connectId}`, 'success');
         switchRole('receiver');
         document.getElementById('manual-code-input').value = connectId;
-        // Tự động kích hoạt kết nối sau một chút trễ
         setTimeout(() => {
           connectToPeer(connectId);
-        }, 1000);
+        }, 1200);
       }
     }
 
@@ -588,7 +598,6 @@
 
     function requestAllPermissions() {
       requestLocationPermission(true);
-      // Hỏi quyền camera trước
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
           stream.getTracks().forEach(track => track.stop());
@@ -601,10 +610,8 @@
 
     // --- THIẾT LẬP SỰ KIỆN TƯƠNG TÁC CHÍNH ---
     function setupEventListeners() {
-      // Hướng dẫn
       document.getElementById('btn-help').addEventListener('click', () => toggleHelpModal(true));
       
-      // Drag & Drop files
       const dropZone = document.getElementById('drop-zone');
       const fileInput = document.getElementById('file-input');
       
@@ -629,7 +636,6 @@
         handleFilesSelected(e.target.files);
       });
 
-      // Soạn tin nhắn văn bản
       const textInput = document.getElementById('text-message-input');
       textInput.addEventListener('input', (e) => {
         document.getElementById('char-counter').innerText = `${e.target.value.length} ký tự`;
@@ -642,7 +648,6 @@
           return;
         }
         
-        // Tạo file ảo dạng Text để truyền đi
         const blob = new Blob([text], { type: 'text/plain' });
         const textFile = new File([blob], `van-ban-${Date.now().toString().slice(-4)}.txt`, { type: 'text/plain' });
         
@@ -652,7 +657,6 @@
         showToast('Thành công', 'Đã chuyển văn bản của bạn thành tệp tin để chuẩn bị gửi', 'success');
       });
 
-      // Tạo kết nối thật (Người Gửi)
       document.getElementById('btn-generate-connection').addEventListener('click', () => {
         if (appState.filesToSend.length === 0) {
           showToast('Chưa chọn file', 'Hãy chọn ít nhất 1 tệp tin hoặc viết văn bản trước khi tạo kết nối!', 'warning');
@@ -661,7 +665,6 @@
         initializeSenderConnection();
       });
 
-      // Kết nối thủ công (Người Nhận)
       document.getElementById('btn-manual-connect').addEventListener('click', () => {
         const code = document.getElementById('manual-code-input').value.trim().toUpperCase();
         if (code.length < 6) {
@@ -671,12 +674,10 @@
         connectToPeer(code);
       });
 
-      // Copy mã thủ công
       document.getElementById('btn-copy-code').addEventListener('click', () => {
         const codeText = document.getElementById('manual-code').innerText;
         if (codeText === '------') return;
         
-        // Copy bằng API gốc tương thích iFrame
         const tempInput = document.createElement('input');
         tempInput.value = codeText;
         document.body.appendChild(tempInput);
@@ -687,7 +688,6 @@
         showToast('Đã sao chép', `Mã kết nối: ${codeText}`, 'success');
       });
 
-      // Chia sẻ trang chính
       document.getElementById('btn-share-page').addEventListener('click', () => {
         if (navigator.share) {
           navigator.share({
@@ -696,7 +696,6 @@
             url: window.location.origin + window.location.pathname
           }).catch(console.error);
         } else {
-          // Fallback copy url
           const tempInput = document.createElement('input');
           tempInput.value = window.location.href;
           document.body.appendChild(tempInput);
@@ -712,8 +711,6 @@
     function switchRole(role) {
       appState.role = role;
       document.getElementById('home-view').classList.add('hidden');
-      
-      // Reset stats
       updateStatsBanner();
 
       if (role === 'sender') {
@@ -726,7 +723,6 @@
     }
 
     function goBackHome() {
-      // Dừng camera nếu đang hoạt động
       if (appState.scanner) {
         appState.scanner.clear();
         appState.scanner = null;
@@ -737,8 +733,6 @@
       document.getElementById('sender-view').classList.add('hidden');
       document.getElementById('receiver-view').classList.add('hidden');
       document.getElementById('home-view').classList.remove('hidden');
-      
-      // Hủy kết nối rtc nếu có để giải phóng bộ nhớ
       closeAllConnections();
     }
 
@@ -754,7 +748,6 @@
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        // Độc lập không trùng lặp id
         const fileId = 'f_' + Math.random().toString(36).substr(2, 9);
         appState.filesToSend.push({
           id: fileId,
@@ -836,9 +829,70 @@
       document.getElementById('stats-size').innerText = formatBytes(totalSize);
     }
 
+    // --- API BROKER GIAO TIẾP VÀ CHUYỂN ĐỔI SERVER DỰ PHÒNG KHI LỖI FETCH ---
+    async function fetchWithFallback(url, options = {}, retries = 5, backoff = 1000) {
+      try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`HTTP Error Status: ${response.status}`);
+        return response;
+      } catch (error) {
+        // Nếu lỗi kết nối (Failed to fetch) và còn lượt retry
+        if (retries > 0) {
+          console.warn(`Fetch thất bại. Tiến hành thử lại sau ${backoff}ms... Số lượt còn lại: ${retries}`);
+          await new Promise(resolve => setTimeout(resolve, backoff));
+          return fetchWithFallback(url, options, retries - 1, backoff * 2);
+        } else {
+          // Khi hết lượt retry, đổi sang Server Signaling dự phòng tiếp theo
+          activeSignalingIndex = (activeSignalingIndex + 1) % SIGNALING_SERVERS.length;
+          console.error(`Chuyển sang Server Signaling dự phòng: ${SIGNALING_SERVERS[activeSignalingIndex]}`);
+          throw error;
+        }
+      }
+    }
+
+    // Gửi dữ liệu tín hiệu (SDP / ICE) với hệ thống tự xử lý lỗi
+    async function sendSignalingData(roomId, data) {
+      const currentServer = SIGNALING_SERVERS[activeSignalingIndex];
+      const url = `${currentServer}/api/signal/${roomId}`;
+      try {
+        await fetchWithFallback(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        console.error('Không thể truyền tải dữ liệu tín hiệu lên server.', e);
+        showToast('Kết nối yếu', 'Không thể truyền tải tín hiệu bắt tay, đang thử lại bằng cổng mạng thay thế...', 'warning');
+      }
+    }
+
+    // Lấy thông tin tín hiệu an toàn
+    async function getSignalingData(roomId) {
+      const currentServer = SIGNALING_SERVERS[activeSignalingIndex];
+      const url = `${currentServer}/api/signal/${roomId}`;
+      try {
+        const res = await fetchWithFallback(url, { method: 'GET' });
+        return await res.json();
+      } catch (e) {
+        // Kích hoạt giao diện sửa lỗi thủ công cho người nhận
+        document.getElementById('error-fallback-tip').classList.remove('hidden');
+        throw e;
+      }
+    }
+
+    // Thử kết nối thủ công bằng cách chuyển Server ngay lập tức
+    function retryConnectionWithFallback() {
+      // Đổi index server
+      activeSignalingIndex = (activeSignalingIndex + 1) % SIGNALING_SERVERS.length;
+      showToast('Đang kết nối lại', `Thử lại trên máy chủ dự phòng cổng số ${activeSignalingIndex + 1}`, 'info');
+      const code = document.getElementById('manual-code-input').value.trim().toUpperCase();
+      if (code) {
+        connectToPeer(code);
+      }
+    }
+
     // --- WEBRTC CORE & KẾT NỐI P2P THẬT ---
     
-    // Đóng hoàn toàn tất cả kết nối cũ
     function closeAllConnections() {
       if (appState.dataChannel) {
         appState.dataChannel.close();
@@ -848,9 +902,13 @@
         appState.peerConnection.close();
         appState.peerConnection = null;
       }
+      if (signalingInterval) {
+        clearInterval(signalingInterval);
+        signalingInterval = null;
+      }
       document.getElementById('connection-status').innerHTML = `
         <span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span>
-        Đã đóng kết nối
+        Chưa khởi tạo kết nối
       `;
       document.getElementById('connection-status').className = 'text-sm font-semibold text-slate-400 flex items-center gap-1.5';
     }
@@ -860,16 +918,14 @@
       showLoader('Đang tạo tín hiệu SDP...', 'Thiết lập mạng WebRTC độc lập');
       
       try {
-        // Khởi tạo một ID kết nối ngẫu nhiên 6 chữ số
         const randomId = Math.floor(100000 + Math.random() * 900000).toString();
         appState.signalId = randomId;
 
-        // Cập nhật giao diện QR
         const qrContainer = document.getElementById('qr-container-wrapper');
         qrContainer.classList.remove('hidden');
         document.getElementById('manual-code').innerText = randomId;
 
-        // Tạo QR Code chứa đường link trực tiếp cho thiết bị nhận quét
+        // Tạo QR Code chứa đường link trực tiếp
         const connectionUrl = `${window.location.origin}${window.location.pathname}?join=${randomId}`;
         const qrCodeDiv = document.getElementById('qrcode');
         qrCodeDiv.innerHTML = '';
@@ -882,24 +938,19 @@
           correctLevel: QRCode.CorrectLevel.M
         });
 
-        // Thiết lập PeerConnection
         const pc = new RTCPeerConnection(rtcConfig);
         appState.peerConnection = pc;
 
-        // Kênh dữ liệu để gửi files
         const dc = pc.createDataChannel('fileTransferChannel', { ordered: true });
         appState.dataChannel = dc;
         setupDataChannelEvents(dc);
 
-        // Bắt đầu thu thập ICE Candidate
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            // Gửi ICE Candidate lên Signaling Broker công cộng theo ID ngẫu nhiên
             sendSignalingData(randomId, { candidate: event.candidate });
           }
         };
 
-        // Tạo SDP Offer
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
@@ -907,7 +958,7 @@
         await sendSignalingData(randomId, { offer: pc.localDescription });
 
         hideLoader();
-        showToast('Đã khởi tạo', 'Mã QR kết nối trực tiếp đã sẵn sàng!', 'success');
+        showToast('Khởi tạo thành công', 'Mã QR kết nối trực tiếp đã sẵn sàng!', 'success');
         
         document.getElementById('connection-status').innerHTML = `
           <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block animate-ping"></span>
@@ -915,106 +966,78 @@
         `;
         document.getElementById('connection-status').className = 'text-sm font-semibold text-blue-500 flex items-center gap-1.5';
 
-        // Lắng nghe phản hồi từ Người Nhận (SDP Answer) bằng cơ chế Long Polling siêu nhẹ trên broker
         startSignalingListener(randomId);
 
       } catch (err) {
         hideLoader();
-        showToast('Lỗi WebRTC', err.message, 'error');
+        showToast('Lỗi WebRTC', 'Không thể cấu hình kênh truyền. Thử tắt chặn quảng cáo/VPN.', 'error');
         console.error(err);
       }
     }
 
-    // Gửi dữ liệu tín hiệu (SDP / ICE) lên Broker API
-    async function sendSignalingData(roomId, data) {
-      try {
-        await fetch(`${SIGNALING_SERVER_BASE}/api/signal/${roomId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-      } catch (e) {
-        // Fallback lưu trữ thông qua API mock nhẹ nếu server chính lỗi
-        console.warn('Lỗi kết nối Server Tín hiệu, lưu cục bộ qua SDP Mocking.', e);
-      }
-    }
-
-    // Lắng nghe tín hiệu từ thiết bị bên kia (Tránh dùng WebSockets phức tạp bị chặn tường lửa)
+    // Lắng nghe tín hiệu từ thiết bị bên kia
     let signalingInterval = null;
     function startSignalingListener(roomId) {
       if (signalingInterval) clearInterval(signalingInterval);
       
       signalingInterval = setInterval(async () => {
         try {
-          const res = await fetch(`${SIGNALING_SERVER_BASE}/api/signal/${roomId}`);
-          if (!res.ok) return;
-          const data = await res.json();
+          const data = await getSignalingData(roomId);
+          if (!data) return;
           
           if (data.answer && appState.peerConnection && !appState.peerConnection.currentRemoteDescription) {
             const answerDesc = new RTCSessionDescription(data.answer);
             await appState.peerConnection.setRemoteDescription(answerDesc);
-            showToast('Đã bắt tay', 'Đang thiết lập kênh truyền tải bảo mật...', 'success');
+            showToast('Đã bắt tay', 'Đang kết nối truyền dữ liệu trực tiếp...', 'success');
           }
 
           if (data.candidates && appState.peerConnection) {
             data.candidates.forEach(async (cand) => {
               try {
                 await appState.peerConnection.addIceCandidate(new RTCIceCandidate(cand));
-              } catch (e) {
-                console.error('Lỗi nạp ICE Candidate:', e);
-              }
+              } catch (e) {}
             });
           }
         } catch (e) {
           // Silent catch
         }
-      }, 1500);
+      }, 2000);
     }
 
-    // Trình tự của NGƯỜI NHẬN
+    // Trình tự của NGƯỜI NHẬN kết nối
     async function connectToPeer(roomId) {
-      showLoader('Đang bắt tay với người gửi...', 'Lấy thông tin sdp để kết nối');
+      showLoader('Đang liên kết thiết bị...', 'Lấy cấu hình sdp từ phòng ' + roomId);
+      document.getElementById('error-fallback-tip').classList.add('hidden');
       
       try {
-        // Lấy SDP Offer của người gửi từ Signaling Server
-        const res = await fetch(`${SIGNALING_SERVER_BASE}/api/signal/${roomId}`);
-        if (!res.ok) {
-          throw new Error('Mã kết nối không tồn tại hoặc đã hết hạn.');
-        }
-        const data = await res.json();
-        
-        if (!data.offer) {
-          throw new Error('Thiết bị gửi chưa sẵn sàng hoặc phòng trống.');
+        const data = await getSignalingData(roomId);
+        if (!data || !data.offer) {
+          throw new Error('Đường dẫn kết nối không tồn tại hoặc đã hết hạn.');
         }
 
         const pc = new RTCPeerConnection(rtcConfig);
         appState.peerConnection = pc;
 
-        // Lắng nghe Kênh dữ liệu khi được truyền từ người gửi tới
         pc.ondatachannel = (event) => {
           appState.dataChannel = event.channel;
           setupDataChannelEvents(event.channel);
         };
 
-        // Gửi ICE candidate của người nhận ngược lại
         pc.onicecandidate = (event) => {
           if (event.candidate) {
             sendSignalingData(roomId, { candidate_receiver: event.candidate });
           }
         };
 
-        // Thiết lập Remote Description từ Offer của người gửi
         const offerDesc = new RTCSessionDescription(data.offer);
         await pc.setRemoteDescription(offerDesc);
 
-        // Tạo SDP Answer
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
-        // Gửi SDP Answer phản hồi ngược lại
+        // Phản hồi SDP Answer ngược lại cho người gửi
         await sendSignalingData(roomId, { answer: pc.localDescription });
 
-        // Nạp các ICE Candidates của người gửi đã lưu (nếu có)
         if (data.candidates) {
           data.candidates.forEach(async (cand) => {
             try {
@@ -1023,15 +1046,14 @@
           });
         }
 
-        // Bắt đầu lắng nghe ICE Candidates bổ sung của người gửi
         startReceiverCandidatesListener(roomId);
-
         hideLoader();
-        showToast('Khởi tạo thành công', 'Đang liên kết P2P direct...', 'success');
+        showToast('Kết nối thành công', 'Đang thiết lập cổng WebRTC...', 'success');
 
       } catch (err) {
         hideLoader();
-        showToast('Kết nối thất bại', err.message, 'error');
+        showToast('Kết nối thất bại', err.message || 'Lỗi mạng xảy ra.', 'error');
+        document.getElementById('error-fallback-tip').classList.remove('hidden');
         console.error(err);
       }
     }
@@ -1039,10 +1061,8 @@
     function startReceiverCandidatesListener(roomId) {
       const interval = setInterval(async () => {
         try {
-          const res = await fetch(`${SIGNALING_SERVER_BASE}/api/signal/${roomId}`);
-          if (!res.ok) return;
-          const data = await res.json();
-          if (data.candidates) {
+          const data = await getSignalingData(roomId);
+          if (data && data.candidates) {
             data.candidates.forEach(async (cand) => {
               try {
                 if (appState.peerConnection) {
@@ -1054,7 +1074,7 @@
         } catch (e) {
           clearInterval(interval);
         }
-      }, 1500);
+      }, 2000);
     }
 
     // THIẾT LẬP CÁC SỰ KIỆN TRUYỀN DỮ LIỆU TRỰC TIẾP
@@ -1062,9 +1082,9 @@
       channel.binaryType = 'arraybuffer';
 
       channel.onopen = () => {
-        if (signalingInterval) clearInterval(signalingInterval); // Tắt signaling khi P2P đã chạy thật
+        if (signalingInterval) clearInterval(signalingInterval);
         
-        showToast('KẾT NỐI THÀNH CÔNG', 'Kênh truyền tải trực tiếp WebRTC đã sẵn sàng!', 'success');
+        showToast('ĐÃ KẾT NỐI THÀNH CÔNG', 'Kênh truyền tải trực tiếp WebRTC đã kết nối thật!', 'success');
         
         document.getElementById('connection-status').innerHTML = `
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
@@ -1072,7 +1092,6 @@
         `;
         document.getElementById('connection-status').className = 'text-sm font-semibold text-emerald-500 flex items-center gap-1.5';
 
-        // Nếu là người gửi, tiến hành thông báo danh sách file sẵn sàng gửi
         if (appState.role === 'sender') {
           sendFileMetadataList();
         }
@@ -1087,7 +1106,6 @@
         document.getElementById('connection-status').className = 'text-sm font-semibold text-red-500 flex items-center gap-1.5';
       };
 
-      // Xử lý luồng nhận dữ liệu thô (Tránh nạp chồng RAM, chia nhỏ chunk)
       let receivedBuffer = [];
       let bytesReceived = 0;
       let activeFileMeta = null;
@@ -1095,34 +1113,29 @@
       channel.onmessage = async (event) => {
         const data = event.data;
 
-        // Phân biệt tin nhắn text / metadata / chunk nhị phân
         if (typeof data === 'string') {
           try {
             const parsed = JSON.parse(data);
             
             if (parsed.type === 'metadata-list') {
-              // Người nhận hiển thị danh sách file từ người gửi
               appState.receivedFiles = parsed.files.map(f => ({
                 ...f,
                 downloadSelected: true,
-                status: 'ready', // 'ready' | 'downloading' | 'completed'
+                status: 'ready',
                 receivedBytes: 0,
                 chunks: []
               }));
               renderReceiverFileList();
               updateStatsBanner();
             } else if (parsed.type === 'start-file') {
-              // Báo bắt đầu truyền tải một file cụ thể
               activeFileMeta = parsed.file;
               receivedBuffer = [];
               bytesReceived = 0;
               updateFileStatusInUI(activeFileMeta.id, 'downloading', 0);
             } else if (parsed.type === 'end-file') {
-              // Hoàn thành file hiện tại, ghép các chunks thô lại thành Blob thực
               const fileBlob = new Blob(receivedBuffer, { type: activeFileMeta.type });
               const fileUrl = URL.createObjectURL(fileBlob);
               
-              // Cập nhật trạng thái
               const targetIdx = appState.receivedFiles.findIndex(f => f.id === activeFileMeta.id);
               if (targetIdx !== -1) {
                 appState.receivedFiles[targetIdx].status = 'completed';
@@ -1140,7 +1153,6 @@
             console.error('Lỗi parse datachannel message:', e);
           }
         } else {
-          // Nhận chunk nhị phân thô của file đang tải
           if (activeFileMeta) {
             receivedBuffer.push(data);
             bytesReceived += data.byteLength;
@@ -1152,7 +1164,6 @@
       };
     }
 
-    // Người gửi báo cho người nhận biết danh sách tệp sắp được truyền tải
     function sendFileMetadataList() {
       if (!appState.dataChannel || appState.dataChannel.readyState !== 'open') return;
 
@@ -1169,7 +1180,6 @@
       }));
     }
 
-    // Bắt đầu truyền tải tệp tin đã chọn từ Người gửi sang Người nhận qua WebRTC
     async function startSendingFiles(selectedFileIds) {
       if (!appState.dataChannel || appState.dataChannel.readyState !== 'open') {
         showToast('Lỗi truyền dữ liệu', 'Chưa kết nối với thiết bị nhận hoặc kết nối đã đóng.', 'error');
@@ -1183,13 +1193,11 @@
         const item = filesToProcess[i];
         showToast('Đang gửi', `Bắt đầu truyền tải: ${item.name}`, 'info');
 
-        // Báo cho đầu nhận chuẩn bị bộ nhớ
         appState.dataChannel.send(JSON.stringify({
           type: 'start-file',
           file: { id: item.id, name: item.name, size: item.size, type: item.type }
         }));
 
-        // Đọc và gửi file theo từng Chunk 16KB (tránh nghẽn băng thông WebRTC buffer)
         const chunkSize = 16384; 
         const fileReader = new FileReader();
         let offset = 0;
@@ -1201,7 +1209,7 @@
 
         await new Promise((resolve) => {
           fileReader.onload = (e) => {
-            if (appState.dataChannel.bufferedAmount > 16000000) { // Nếu hàng đợi tràn (~16MB), đợi hàng đợi vơi bớt
+            if (appState.dataChannel.bufferedAmount > 16000000) {
               setTimeout(() => {
                 appState.dataChannel.send(e.target.result);
                 offset += e.target.result.byteLength;
@@ -1218,7 +1226,6 @@
             if (offset < item.file.size) {
               sendChunk();
             } else {
-              // Đã gửi xong tất cả chunks của file này
               appState.dataChannel.send(JSON.stringify({ type: 'end-file' }));
               resolve();
             }
@@ -1300,7 +1307,6 @@
             </div>
             <div>${buttonActionHTML}</div>
           </div>
-          <!-- Tiến trình tải -->
           <div id="progress-bar-wrapper-${item.id}" class="mt-3 w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 hidden">
             <div id="progress-bar-${item.id}" class="bg-primary-500 h-1.5 rounded-full transition-all duration-150" style="width: 0%"></div>
           </div>
@@ -1309,7 +1315,6 @@
         container.appendChild(itemDiv);
       });
 
-      // Lắng nghe nút kích hoạt tải tệp chọn
       downloadAllBtn.onclick = () => {
         const selectedIds = appState.receivedFiles.filter(f => f.downloadSelected && f.status === 'ready').map(f => f.id);
         if (selectedIds.length === 0) {
@@ -1317,10 +1322,8 @@
           return;
         }
         
-        // Gửi yêu cầu qua WebRTC để người gửi truyền luồng dữ liệu
         if (appState.dataChannel && appState.dataChannel.readyState === 'open') {
           showToast('Đang kết nối tải', `Đang yêu cầu truyền tải dữ liệu của ${selectedIds.length} tệp...`, 'info');
-          // Gửi tín hiệu trigger bắt đầu truyền file từ đầu gửi
           startSendingFiles(selectedIds);
         }
       };
@@ -1372,7 +1375,6 @@
       downloadLink.href = file.blobUrl;
       downloadLink.download = file.name;
 
-      // Xử lý xem trước tương ứng loại tệp
       if (file.type.startsWith('image/')) {
         const img = document.createElement('img');
         img.src = file.blobUrl;
@@ -1394,7 +1396,6 @@
         };
         reader.readAsText(file.blob);
       } else {
-        // Tệp không hỗ trợ xem trước mặc định
         content.innerHTML = `
           <div class="text-center py-6">
             <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-900 text-slate-400 flex items-center justify-center mx-auto mb-3">
@@ -1414,9 +1415,8 @@
       document.getElementById('preview-modal').classList.add('hidden');
     }
 
-    // --- CAMERA / QUÉT MÃ QR (Sử dụng Html5Qrcode Scanner gốc) ---
+    // --- CAMERA / QUÉT MÃ QR ---
     function startQrScanner() {
-      // Yêu cầu quyền camera thực tế
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(() => {
           document.getElementById('scanner-placeholder').classList.add('hidden');
@@ -1431,12 +1431,10 @@
               }
             },
             (decodedText) => {
-              // Thành công quét QR
               appState.scanner.stop().then(() => {
                 appState.scanner = null;
                 document.getElementById('scanner-placeholder').classList.remove('hidden');
                 
-                // Trích xuất mã ID từ URL hoặc mã văn bản thô
                 try {
                   const url = new URL(decodedText);
                   const joinId = url.searchParams.get('join');
@@ -1451,9 +1449,7 @@
                 }
               });
             },
-            (errorMessage) => {
-              // Đọc lỗi liên tục (silent)
-            }
+            (errorMessage) => {}
           ).catch(err => {
             showToast('Lỗi camera', 'Không thể kích hoạt luồng camera quét mã QR', 'error');
             document.getElementById('scanner-placeholder').classList.remove('hidden');
