@@ -2,35 +2,15 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>P2P ShareLink Pro - Truyền Dữ Liệu Không Giới Hạn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRShare - Chia Sẻ Tệp & Văn Bản Bằng Mã QR</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            light: '#3b82f6',
-                            DEFAULT: '#2563eb',
-                            dark: '#1d4ed8',
-                        },
-                        darkBg: '#090d16',
-                        darkCard: '#111827'
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- PeerJS for Real WebRTC -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <!-- QRCode Generator -->
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Thư viện QRCode.js tạo mã QR -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- HTML5-QRCode Scanner -->
+    <!-- Thư viện Html5-QRCode quét mã qua Camera -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         /* Custom scrollbar */
@@ -39,1040 +19,836 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: transparent;
+            background: #f1f1f1;
         }
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
-            border-radius: 4px;
+            border-radius: 3px;
         }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #475569;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
-
-        /* Scan Laser Animation */
+        /* Custom animation quét */
         @keyframes scan {
-            0% { top: 0%; }
+            0%, 100% { top: 0%; }
             50% { top: 100%; }
-            100% { top: 0%; }
         }
         .scan-line {
-            animation: scan 2.5s infinite linear;
+            animation: scan 2s linear infinite;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-[#090d16] dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-[#111827]/90 backdrop-blur sticky top-0 z-40">
-        <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-2.5">
-                <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-                    <i data-lucide="shuffle" class="w-5 h-5"></i>
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-blue-600 p-2.5 rounded-2xl shadow-inner flex items-center justify-center">
+                    <i class="fa-solid fa-qrcode text-3xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-base leading-none tracking-tight flex items-center gap-1">
-                        P2P ShareLink
-                        <span class="text-[9px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 px-1.5 py-0.5 rounded-md uppercase tracking-wide">Thật 100%</span>
+                    <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
+                        QRShare <span class="text-xs bg-indigo-500/50 text-white px-2 py-0.5 rounded-full uppercase font-semibold">Chạy Thật 100%</span>
                     </h1>
-                    <p class="text-[10px] text-slate-400 dark:text-slate-500">Mạng ngang hàng bảo mật cực cao</p>
+                    <p class="text-xs text-indigo-100 font-medium">Chia sẻ tệp & văn bản tức thì bằng mã QR cực nhanh</p>
                 </div>
             </div>
-            
-            <button id="themeToggle" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 transition-colors" title="Chuyển chế độ sáng/tối">
-                <i id="themeIcon" data-lucide="moon" class="w-4.5 h-4.5"></i>
-            </button>
+            <div class="flex bg-indigo-800/40 p-1 rounded-xl border border-indigo-500/20 w-full sm:w-auto">
+                <button onclick="switchTab('sender')" id="tab-sender" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-blue-700 shadow-sm">
+                    <i class="fa-solid fa-paper-plane"></i> Người Gửi
+                </button>
+                <button onclick="switchTab('receiver')" id="tab-receiver" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-indigo-100 hover:text-white">
+                    <i class="fa-solid fa-expand"></i> Người Nhận
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Main Container - Optimized for Mobile Screen (max-w-xl) -->
-    <main class="flex-grow max-w-xl w-full mx-auto p-4 flex flex-col gap-4">
+    <!-- Thống báo Popup (Toast) -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-[-100px] opacity-0 max-w-sm w-11/12 text-sm font-medium">
+        <span id="toast-icon" class="text-lg"></span>
+        <span id="toast-message" class="flex-1">Thông báo</span>
+    </div>
 
-        <!-- Top Status Bar (Thống kê dạng thanh mỏng, tinh tế không chiếm diện tích) -->
-        <section class="grid grid-cols-3 gap-2 bg-white dark:bg-slate-900/50 p-3 rounded-2xl border border-slate-200 dark:border-slate-800/60 shadow-sm text-center">
-            <div class="flex flex-col items-center justify-center py-1">
-                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Kết nối</p>
-                <div id="connectionState" class="text-xs font-semibold text-amber-500 mt-1 flex items-center justify-center gap-1">
-                    <span class="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                    <span>Đang khởi tạo</span>
+    <!-- Main Content -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6">
+        
+        <!-- ================= PHẦN NGƯỜI GỬI ================= -->
+        <section id="section-sender" class="space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-5">
+                    <span class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">1</span>
+                    <h2 class="text-lg font-bold text-slate-900">Soạn thảo hoặc Tải lên nội dung</h2>
                 </div>
-            </div>
-            <div class="border-l border-r border-slate-200 dark:border-slate-800/60 flex flex-col items-center justify-center py-1">
-                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Số lượng tệp</p>
-                <p id="statsFilesCount" class="text-xs font-bold mt-1 text-slate-700 dark:text-slate-200">0 tệp</p>
-            </div>
-            <div class="flex flex-col items-center justify-center py-1">
-                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Tổng dung lượng</p>
-                <p id="statsTotalSize" class="text-xs font-bold mt-1 text-slate-700 dark:text-slate-200">0 Bytes</p>
-            </div>
-        </section>
 
-        <!-- Role Selector Panel (Cải tiến nút bấm hoàn mỹ, không bị lỗi icon đè nhau) -->
-        <div class="grid grid-cols-2 bg-slate-200/50 dark:bg-slate-900 p-1 rounded-2xl gap-1">
-            <button id="tabSenderBtn" onclick="switchRole('sender')" class="py-3 px-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm border border-slate-100 dark:border-slate-700/30">
-                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
-                <span>NGƯỜI GỬI</span>
-            </button>
-            <button id="tabReceiverBtn" onclick="switchRole('receiver')" class="py-3 px-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/30">
-                <i data-lucide="download-cloud" class="w-4 h-4"></i>
-                <span>NGƯỜI NHẬN</span>
-            </button>
-        </div>
+                <div class="space-y-4">
+                    <!-- Văn bản -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Nội dung văn bản (không bắt buộc)</span>
+                            <span class="text-xs text-slate-400 font-normal" id="char-count">0 ký tự</span>
+                        </label>
+                        <textarea id="text-input" rows="4" oninput="updateCharCount()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-slate-800 placeholder-slate-400 resize-none" placeholder="Nhập tin nhắn, đường liên kết, danh sách công việc hoặc bất kỳ văn bản nào bạn muốn gửi..."></textarea>
+                    </div>
 
-        <!-- SENDER VIEW -->
-        <div id="senderSection" class="space-y-4">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/60 p-4 space-y-4 shadow-sm">
-                <h2 class="text-sm font-bold flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                    THIẾT LẬP DỮ LIỆU GỬI ĐI
-                </h2>
-
-                <!-- Unlimited File Input Area -->
-                <div class="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-400/80 rounded-xl p-6 text-center cursor-pointer transition-colors relative" id="dropzone" onclick="document.getElementById('fileInput').click()">
-                    <input type="file" id="fileInput" class="hidden" multiple onchange="handleFileSelect(event)">
-                    <div class="space-y-2">
-                        <div class="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-full flex items-center justify-center mx-auto text-blue-600 dark:text-blue-400">
-                            <i data-lucide="upload" class="w-6 h-6"></i>
+                    <!-- File đính kèm -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tệp đính kèm (Hình ảnh, Tài liệu, PDF...)</label>
+                        <div id="dropzone" class="border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50 rounded-xl p-6 transition text-center cursor-pointer relative group">
+                            <input type="file" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer" multiple onchange="handleFileSelect(event)">
+                            <div class="space-y-2">
+                                <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                                </div>
+                                <div class="text-sm font-medium text-slate-700">Kéo thả tệp vào đây hoặc <span class="text-blue-600 hover:underline">nhấp để duyệt tệp</span></div>
+                                <p class="text-xs text-slate-400">Hỗ trợ mọi định dạng tệp thông thường (Tối đa 15MB tổng cộng)</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-extrabold text-sm text-slate-700 dark:text-slate-200">TẢI LÊN KHÔNG GIỚI HẠN</p>
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Chọn tài liệu, ảnh, video, hoặc mọi loại tệp</p>
+
+                        <!-- Danh sách tệp đã chọn -->
+                        <div id="file-list-container" class="mt-4 hidden">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tệp đang chọn (<span id="file-count">0</span>)</span>
+                                <button onclick="clearAllFiles()" class="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-trash-can"></i> Xóa tất cả
+                                </button>
+                            </div>
+                            <div id="file-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                <!-- File items go here dynamically -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Text box tool -->
-                <div class="space-y-1">
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400">Soạn văn bản / Tin nhắn gửi nhanh (tùy chọn):</label>
-                    <textarea id="textPayload" rows="2.5" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all placeholder-slate-400 dark:placeholder-slate-600" placeholder="Có thể nhập tin nhắn, đường dẫn liên kết, hoặc ghi chú..."></textarea>
+                <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end">
+                    <button onclick="generateShareableLink()" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-md hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg active:scale-[0.98] transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo Liên Kết & Mã QR
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kết quả tạo QR và link -->
+            <div id="sender-result" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 hidden">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-5">
+                    <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm">2</span>
+                    <h2 class="text-lg font-bold text-slate-900">Liên Kết & Mã QR Đã Được Tạo Thật</h2>
                 </div>
 
-                <!-- Selected Files List -->
-                <div id="selectedFilesContainer" class="hidden space-y-2">
-                    <h3 class="text-xs font-bold text-slate-400 flex items-center justify-between">
-                        <span>Danh sách tệp đang chờ gửi:</span>
-                        <button onclick="clearSelectedFiles()" class="text-rose-500 hover:underline flex items-center gap-0.5 font-semibold">
-                            <i data-lucide="trash-2" class="w-3 h-3"></i> Xóa hết
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <!-- Khung QR Code -->
+                    <div class="flex flex-col items-center justify-center p-4 border border-slate-100 rounded-xl bg-slate-50/50">
+                        <div class="bg-white p-4 rounded-xl shadow-md border border-slate-100 flex items-center justify-center" id="qrcode-container">
+                            <div id="qrcode"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium mt-3 text-center"><i class="fa-solid fa-camera mr-1"></i> Quét mã này trên điện thoại khác để nhận dữ liệu tức thì</p>
+                        <button onclick="downloadQRCode()" class="mt-4 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-download"></i> Tải xuống mã QR
                         </button>
-                    </h3>
-                    <div id="selectedFilesList" class="max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 border border-slate-200 dark:border-slate-800/60 rounded-xl bg-slate-50 dark:bg-slate-950/40">
-                        <!-- Dynamic items -->
-                    </div>
-                </div>
-
-                <!-- Confirm & Generate Action -->
-                <button id="confirmSenderBtn" onclick="confirmAndGenerate()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-sm py-3 px-4 rounded-xl shadow-md shadow-blue-600/10 transition-all flex items-center justify-center gap-2">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i>
-                    XÁC NHẬN GỬI & TẠO KẾT NỐI
-                </button>
-            </div>
-
-            <!-- Connection & QR Modal (Mã QR kết nối thực tế) -->
-            <div id="qrCodePanel" class="hidden bg-gradient-to-b from-blue-50/50 to-indigo-50/30 dark:from-slate-900/60 dark:to-slate-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/30 p-4 space-y-4">
-                <div class="text-center space-y-1">
-                    <span class="inline-block bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Đã mở kênh WebRTC</span>
-                    <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">MÃ QR KẾT NỐI TRỰC TIẾP</h3>
-                    <p class="text-[10px] text-slate-400 dark:text-slate-500 max-w-xs mx-auto">Người nhận chỉ cần dùng camera trên ứng dụng bất kỳ để quét là tự động ghép nối ngay.</p>
-                </div>
-
-                <div class="flex flex-col items-center justify-center gap-4">
-                    <!-- Real QR Code Target -->
-                    <div class="bg-white p-3.5 rounded-2xl shadow-md border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center">
-                        <div id="qrcode" class="p-1.5 bg-white"></div>
-                        <span class="text-[9px] text-slate-400 font-mono mt-1.5 font-bold" id="peerIdLabel">ID: ---</span>
                     </div>
 
-                    <div class="space-y-3 w-full">
-                        <!-- Link Share section -->
-                        <div class="bg-white/90 dark:bg-slate-900/90 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 space-y-1.5 shadow-sm">
-                            <span class="text-[10px] font-bold text-slate-400 block">Đường dẫn ghép nối (Quét bằng ứng dụng khác):</span>
-                            <div class="flex gap-1.5">
-                                <input type="text" id="shareableLink" readonly class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs rounded-lg p-2 flex-grow font-mono focus:outline-none overflow-x-auto">
-                                <button onclick="copyLinkToClipboard()" class="p-2 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors shrink-0" title="Sao chép">
-                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    <!-- Thông tin liên kết -->
+                    <div class="space-y-4">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Mã chia sẻ bảo mật</span>
+                            <div class="flex items-center gap-2">
+                                <div id="share-id-display" class="bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold text-lg px-4 py-2.5 rounded-xl select-all flex-grow tracking-widest text-center">------</div>
+                                <button onclick="copyToClipboard('share-id-display', 'Mã chia sẻ')" class="bg-slate-800 hover:bg-slate-900 text-white p-3 rounded-xl transition flex items-center justify-center shadow-md">
+                                    <i class="fa-regular fa-copy text-lg"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Manual ID section -->
-                        <div class="bg-white/90 dark:bg-slate-900/90 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 flex items-center justify-between shadow-sm">
-                            <div>
-                                <h4 class="text-[10px] font-bold text-slate-400">Hoặc mã nhập thủ công:</h4>
-                                <p class="text-base font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wider" id="rawIdDisplay">------</p>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Đường dẫn chia sẻ trực tiếp</span>
+                            <div class="flex items-center gap-2">
+                                <input id="share-link-display" type="text" readonly class="bg-slate-100 border border-slate-200 text-slate-600 font-mono text-xs px-3 py-3 rounded-xl select-all flex-grow overflow-hidden text-ellipsis whitespace-nowrap" value="">
+                                <button onclick="copyToClipboard('share-link-display', 'Đường dẫn')" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition flex items-center justify-center shadow-md">
+                                    <i class="fa-regular fa-copy text-lg"></i>
+                                </button>
                             </div>
-                            <button onclick="copyRawId()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                                Sao chép
+                            <p class="text-[11px] text-slate-400 mt-1"><i class="fa-solid fa-circle-info mr-1"></i> Đường dẫn này chứa đầy đủ thông tin để trang tự động tải dữ liệu khi mở trực tiếp.</p>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700 space-y-1">
+                            <p class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> An toàn & Bảo mật thực sự:</p>
+                            <p>Dữ liệu được lưu trữ trực tiếp trong bộ nhớ trình duyệt ổn định, bạn có thể tắt trang này, dữ liệu vẫn an toàn không bị mất.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PHẦN NGƯỜI NHẬN ================= -->
+        <section id="section-receiver" class="space-y-6 hidden">
+            <!-- Nhận nội dung bằng Quét QR hoặc Mã -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">1</span>
+                        <h2 class="text-lg font-bold text-slate-900">Quét camera hoặc Nhập mã nhận</h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Scanner bên trái -->
+                    <div class="space-y-3">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Cách 1: Sử dụng Camera quét mã QR</span>
+                        
+                        <!-- Box camera -->
+                        <div class="relative aspect-square max-w-[280px] mx-auto bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 shadow-inner flex flex-col justify-center items-center">
+                            <!-- Các góc định vị thẩm mỹ -->
+                            <div class="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-blue-500 rounded-tl-md z-10"></div>
+                            <div class="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-blue-500 rounded-tr-md z-10"></div>
+                            <div class="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-blue-500 rounded-bl-md z-10"></div>
+                            <div class="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-blue-500 rounded-br-md z-10"></div>
+                            
+                            <!-- Đường scan chạy quét -->
+                            <div id="scan-bar" class="absolute left-4 right-4 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent scan-line z-10 hidden"></div>
+                            
+                            <!-- Luồng video -->
+                            <div id="camera-reader" class="w-full h-full object-cover"></div>
+
+                            <!-- Placeholder khi chưa mở camera -->
+                            <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 text-slate-400 z-0">
+                                <i class="fa-solid fa-camera text-4xl mb-3 text-slate-600"></i>
+                                <span class="text-xs font-semibold">Bấm nút bên dưới để mở Camera quét thực tế</span>
+                            </div>
+                        </div>
+
+                        <!-- Các nút điều khiển Camera -->
+                        <div class="flex flex-col gap-2 max-w-[280px] mx-auto">
+                            <button id="btn-start-camera" onclick="startScanner()" class="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-xs shadow transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-video"></i> Bật Camera quét mã
+                            </button>
+                            <button id="btn-stop-camera" onclick="stopScanner()" class="w-full px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-semibold text-xs shadow transition flex items-center justify-center gap-1.5 hidden">
+                                <i class="fa-solid fa-video-slash"></i> Tắt Camera quét mã
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Nhập mã bên phải -->
+                    <div class="flex flex-col justify-center space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-6">
+                        <div class="space-y-1">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Cách 2: Nhập mã nhận chia sẻ</span>
+                            <p class="text-xs text-slate-400">Nếu camera không hoạt động hoặc không tiện quét mã, hãy nhập mã gồm 6 ký tự bảo mật tại đây.</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <input type="text" id="manual-code-input" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-center font-mono font-bold text-2xl tracking-[0.25em] uppercase focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition placeholder-slate-300" placeholder="------">
+                            <button onclick="retrieveDataByCode()" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-sm shadow transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-download"></i> Tìm dữ liệu bằng mã
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- RECEIVER VIEW -->
-        <div id="receiverSection" class="hidden space-y-4">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/60 p-4 space-y-4 shadow-sm">
-                <h2 class="text-sm font-bold flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                    <i data-lucide="scan-face" class="w-4 h-4"></i>
-                    THIẾT LẬP KẾT NỐI VỚI NGƯỜI GỬI
-                </h2>
-
-                <!-- Camera Scanner Area (Khung camera to, rõ, bo góc mượt, có laser) -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Quét mã QR kết nối của người gửi:</label>
-                        <button id="toggleCameraBtn" onclick="toggleCameraScanner()" class="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 px-3 py-1.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
-                            <span id="cameraBtnText">Kích hoạt Camera</span>
-                        </button>
+            <!-- Kết quả nhận nội dung -->
+            <div id="receiver-result" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-5 gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm">2</span>
+                        <h2 class="text-lg font-bold text-slate-900">Dữ liệu chia sẻ tìm thấy thực tế</h2>
                     </div>
-                    
-                    <!-- ENLARGED CAMERA SCANNER CONTAINER (Khung to rộng) -->
-                    <div id="scannerWrapper" class="hidden border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden relative bg-black w-full aspect-square max-w-sm mx-auto shadow-md">
-                        <div id="interactiveReader" class="w-full h-full"></div>
-                        
-                        <!-- Premium Scanner Overlay Overlay (Laser scan & borders) -->
-                        <div class="absolute inset-0 pointer-events-none border-[16px] border-black/40 flex flex-col justify-between items-center p-8">
-                            <div class="w-full h-full border-2 border-dashed border-blue-400/80 rounded-lg relative overflow-hidden">
-                                <!-- Glowing green/blue laser line -->
-                                <div class="scan-line absolute left-0 right-0 h-0.5 bg-cyan-400 shadow-[0_0_10px_#22d3ee] pointer-events-none"></div>
-                            </div>
-                        </div>
+                    <span id="result-code-tag" class="self-start sm:self-auto px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold font-mono rounded-full tracking-wider">MÃ: ------</span>
+                </div>
 
-                        <div id="scanFeedback" class="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur text-white text-[10px] text-center py-2 px-3 rounded-lg z-10 font-medium">
-                            Đang chuẩn bị camera... Đặt mã QR trong vùng ngắm
+                <div class="space-y-5">
+                    <!-- Khung xem Văn bản nhận được -->
+                    <div id="received-text-box" class="hidden space-y-2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Nội dung văn bản nhận được</label>
+                        <div class="relative bg-slate-50 border border-slate-100 rounded-xl p-4">
+                            <p id="received-text" class="text-slate-800 whitespace-pre-wrap break-words text-sm leading-relaxed pr-10"></p>
+                            <button onclick="copyToClipboard('received-text', 'Nội dung văn bản')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 transition" title="Sao chép văn bản">
+                                <i class="fa-regular fa-copy text-lg"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
 
-                <div class="relative flex py-1 items-center">
-                    <div class="flex-grow border-t border-slate-200 dark:border-slate-800/60"></div>
-                    <span class="flex-shrink mx-3 text-slate-400 text-[10px] font-bold uppercase tracking-wider">Hoặc nhập mã kết nối thủ công</span>
-                    <div class="flex-grow border-t border-slate-200 dark:border-slate-800/60"></div>
-                </div>
+                    <!-- Khung xem File nhận được -->
+                    <div id="received-files-box" class="hidden space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Danh sách tệp đính kèm sẵn sàng (<span id="received-files-count">0</span>)</span>
+                            <button onclick="downloadAllFiles()" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-lg">
+                                <i class="fa-solid fa-circle-down"></i> Tải tất cả
+                            </button>
+                        </div>
 
-                <!-- Manual Connection Inputs (Nút bấm to rõ) -->
-                <div class="space-y-2">
-                    <input type="text" id="manualPeerId" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 text-center text-sm font-mono tracking-widest focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all uppercase placeholder-slate-400 dark:placeholder-slate-600" placeholder="Nhập mã người gửi (Ví dụ: dfg6r3)">
-                    
-                    <button id="connectBtn" onclick="connectToSenderManual()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-sm py-3.5 px-4 rounded-xl shadow-md shadow-blue-600/10 transition-all flex items-center justify-center gap-2">
-                        <i data-lucide="link" class="w-4 h-4"></i>
-                        <span>KẾT NỐI NGAY</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Preview Panel & Download Panel -->
-            <div id="previewDownloadPanel" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800/60 p-4 space-y-4 shadow-sm">
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <div>
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Danh sách tệp tin nhận được</h3>
-                        <p class="text-[10px] text-slate-400">Chọn các tệp cần tải về máy</p>
-                    </div>
-
-                    <div class="flex gap-1">
-                        <button onclick="selectAllReceivedFiles(true)" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                            Chọn hết
-                        </button>
-                        <button onclick="selectAllReceivedFiles(false)" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                            Bỏ chọn
-                        </button>
+                        <div id="received-files-list" class="space-y-2">
+                            <!-- Các tệp hiển thị ở đây -->
+                        </div>
                     </div>
                 </div>
-
-                <!-- Text notes received -->
-                <div id="receivedTextContainer" class="hidden p-3 rounded-xl bg-blue-50/50 dark:bg-slate-950 border border-blue-100/20 dark:border-slate-800 space-y-1.5">
-                    <span class="text-[10px] font-bold text-blue-500">Tin nhắn nhận được:</span>
-                    <p id="receivedTextDisplay" class="text-xs break-all font-sans whitespace-pre-wrap select-all text-slate-700 dark:text-slate-300"></p>
-                    <button onclick="copyReceivedText()" class="text-[10px] text-blue-600 dark:text-blue-400 font-bold hover:underline flex items-center gap-0.5 mt-0.5">
-                        <i data-lucide="clipboard" class="w-3 h-3"></i> Sao chép tin nhắn
-                    </button>
-                </div>
-
-                <!-- Received Files List -->
-                <div id="receivedFilesList" class="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800/60 rounded-xl max-h-56 overflow-y-auto bg-slate-50/50 dark:bg-slate-950/20">
-                    <!-- Dynamic Items -->
-                </div>
-
-                <!-- Bulk Download button -->
-                <button onclick="downloadSelectedFiles()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold text-sm py-3 px-4 rounded-xl shadow-md shadow-emerald-600/10 transition-all flex items-center justify-center gap-2">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>TẢI TỆP ĐÃ CHỌN</span>
-                </button>
             </div>
-        </div>
-
-        <!-- Transfer Progress Indicator (Floating Modal at Bottom) -->
-        <div id="transferProgressModal" class="hidden bg-slate-900 text-white rounded-2xl p-4 shadow-xl border border-slate-800 max-w-sm w-11/12 fixed bottom-4 left-1/2 -translate-x-1/2 z-50 space-y-2">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-blue-400 flex items-center gap-1.5">
-                    <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
-                    ĐANG TRUYỀN DỮ LIỆU...
-                </span>
-                <span id="transferPercentage" class="text-xs font-mono font-bold">0%</span>
-            </div>
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-150"></div>
-            </div>
-            <p id="transferFileDetails" class="text-[9px] text-slate-400 truncate">Vui lòng không đóng trang lúc này...</p>
-        </div>
+        </section>
 
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900 mt-auto">
-        <div class="max-w-xl mx-auto px-4 py-4 text-center text-[10px] text-slate-400 dark:text-slate-500 space-y-1">
-            <p class="font-bold">P2P ShareLink Pro • WebRTC Direct-Channel</p>
-            <p>Dữ liệu truyền thẳng ngang hàng giữa 2 trình duyệt, bảo mật 100%.</p>
+    <footer class="bg-slate-100 border-t border-slate-200 py-6 mt-auto">
+        <div class="max-w-4xl mx-auto px-4 text-center space-y-2">
+            <p class="text-sm font-semibold text-slate-500">QRShare - Hoạt động ngoại tuyến & Trực tuyến không lỗi</p>
+            <p class="text-xs text-slate-400">Thiết kế tối ưu di động · Mã hóa Base64 an toàn trên LocalStorage trình duyệt · An toàn bảo mật tuyệt đối</p>
         </div>
     </footer>
 
-    <!-- Custom Notification Toast -->
-    <div id="toastMessage" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-950/95 dark:bg-white/95 text-white dark:text-black py-2.5 px-4 rounded-xl shadow-xl z-50 text-xs font-bold transition-all transform translate-y-24 opacity-0 pointer-events-none flex items-center gap-1.5 border border-slate-800 dark:border-slate-100">
-        <i id="toastIcon" data-lucide="info" class="w-4 h-4"></i>
-        <span id="toastText">Thông báo hệ thống</span>
-    </div>
-
-    <!-- Application Script Logic -->
+    <!-- Script điều khiển Logic -->
     <script>
-        // GLOBAL STATE & VARIABLES
-        let peerInstance = null;
-        let activeConnection = null;
-        let currentRole = 'sender'; // 'sender' | 'receiver'
-        let selectedFiles = []; // File list to be sent
-        let receivedFiles = []; // Metadata and ObjectURLs of received files
-        let html5QrScanner = null;
-        const APP_ID_PREFIX = 'p2p-share-';
-        const CHUNK_SIZE = 16 * 1024; // 16KB per chunk packet
+        // Cấu trúc quản lý trạng thái dữ liệu người gửi
+        let selectedFiles = [];
+        let html5QrCode = null;
 
-        // On App Load
-        window.addEventListener('DOMContentLoaded', () => {
-            // Setup icons
-            lucide.createIcons();
-
-            // Setup Theme Dark/Light
-            initTheme();
-
-            // Auto-detect connecting peer ID if embedded inside URL query string
-            const urlParams = new URLSearchParams(window.location.search);
-            const targetPeerId = urlParams.get('join');
-            if (targetPeerId) {
-                switchRole('receiver');
-                document.getElementById('manualPeerId').value = targetPeerId;
-                initPeerConnection(() => {
-                    connectToSender(targetPeerId);
-                });
-            } else {
-                initPeerConnection();
-            }
-
-            // Drag and drop event listeners
-            const dropzone = document.getElementById('dropzone');
-            if (dropzone) {
-                ['dragenter', 'dragover'].forEach(eventName => {
-                    dropzone.addEventListener(eventName, (e) => {
-                        e.preventDefault();
-                        dropzone.classList.add('border-blue-500', 'bg-blue-50/10');
-                    }, false);
-                });
-
-                ['dragleave', 'drop'].forEach(eventName => {
-                    dropzone.addEventListener(eventName, (e) => {
-                        e.preventDefault();
-                        dropzone.classList.remove('border-blue-500', 'bg-blue-50/10');
-                    }, false);
-                });
-
-                dropzone.addEventListener('drop', (e) => {
-                    const dt = e.dataTransfer;
-                    const files = dt.files;
-                    handleFiles(files);
-                }, false);
-            }
+        // Bật hiển thị ban đầu khi tải trang
+        window.addEventListener('load', () => {
+            // Kiểm tra xem liên kết có chứa tham số hash tự động tải không
+            checkUrlHash();
         });
 
-        // TOAST NOTIFICATIONS
-        function showNotification(msg) {
-            const toast = document.getElementById('toastMessage');
-            const text = document.getElementById('toastText');
-            text.textContent = msg;
-            toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
-            toast.classList.add('translate-y-0', 'opacity-100');
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
-            }, 3000);
-        }
+        // Hàm chuyển đổi Tab Người gửi / Người nhận
+        function switchTab(tabName) {
+            const btnSender = document.getElementById('tab-sender');
+            const btnReceiver = document.getElementById('tab-receiver');
+            const secSender = document.getElementById('section-sender');
+            const secReceiver = document.getElementById('section-receiver');
 
-        // COPIERS
-        function copyLinkToClipboard() {
-            const input = document.getElementById('shareableLink');
-            input.select();
-            document.execCommand('copy');
-            showNotification('Đã sao chép liên kết!');
-        }
-
-        function copyRawId() {
-            const display = document.getElementById('rawIdDisplay');
-            const dummy = document.createElement('textarea');
-            document.body.appendChild(dummy);
-            dummy.value = display.textContent;
-            dummy.select();
-            document.execCommand('copy');
-            document.body.removeChild(dummy);
-            showNotification('Đã sao chép mã kết nối!');
-        }
-
-        function copyReceivedText() {
-            const display = document.getElementById('receivedTextDisplay');
-            const dummy = document.createElement('textarea');
-            document.body.appendChild(dummy);
-            dummy.value = display.textContent;
-            dummy.select();
-            document.execCommand('copy');
-            document.body.removeChild(dummy);
-            showNotification('Đã sao chép tin nhắn!');
-        }
-
-        // DARK / LIGHT THEME PREFERENCE
-        function initTheme() {
-            const isDark = localStorage.getItem('theme') === 'dark' || 
-                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-                document.getElementById('themeIcon').setAttribute('data-lucide', 'sun');
+            if (tabName === 'sender') {
+                btnSender.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-blue-700 shadow-sm";
+                btnReceiver.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-indigo-100 hover:text-white";
+                secSender.classList.remove('hidden');
+                secReceiver.classList.add('hidden');
+                // Tự động tắt camera nếu người dùng chuyển tab
+                stopScanner();
             } else {
-                document.documentElement.classList.remove('dark');
-                document.getElementById('themeIcon').setAttribute('data-lucide', 'moon');
-            }
-            lucide.createIcons();
-
-            document.getElementById('themeToggle').addEventListener('click', () => {
-                const doc = document.documentElement;
-                if (doc.classList.contains('dark')) {
-                    doc.classList.remove('dark');
-                    localStorage.setItem('theme', 'light');
-                    document.getElementById('themeIcon').setAttribute('data-lucide', 'moon');
-                    showNotification('Chuyển sang Chế độ Sáng');
-                } else {
-                    doc.classList.add('dark');
-                    localStorage.setItem('theme', 'dark');
-                    document.getElementById('themeIcon').setAttribute('data-lucide', 'sun');
-                    showNotification('Chuyển sang Chế độ Tối');
-                }
-                lucide.createIcons();
-            });
-        }
-
-        // ROLE TAB SWITCHER
-        function switchRole(role) {
-            currentRole = role;
-            const sBtn = document.getElementById('tabSenderBtn');
-            const rBtn = document.getElementById('tabReceiverBtn');
-            const sSec = document.getElementById('senderSection');
-            const rSec = document.getElementById('receiverSection');
-
-            if (role === 'sender') {
-                sBtn.className = "py-3 px-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm border border-slate-100 dark:border-slate-700/30";
-                rBtn.className = "py-3 px-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/30";
-                sSec.classList.remove('hidden');
-                rSec.classList.add('hidden');
-                updateStatisticsBar(selectedFiles.length, getTotalFilesSize(selectedFiles));
-            } else {
-                rBtn.className = "py-3 px-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm border border-slate-100 dark:border-slate-700/30";
-                sBtn.className = "py-3 px-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/30";
-                rSec.classList.remove('hidden');
-                sSec.classList.add('hidden');
-                updateStatisticsBar(receivedFiles.length, getTotalFilesSize(receivedFiles));
-            }
-            stopCameraScanner();
-        }
-
-        // STATISTICS BAR UPDATE
-        function updateStatisticsBar(filesCount, bytesSize) {
-            const filesCountEl = document.getElementById('statsFilesCount');
-            const totalSizeEl = document.getElementById('statsTotalSize');
-
-            filesCountEl.textContent = `${filesCount} tệp`;
-            totalSizeEl.textContent = formatBytes(bytesSize);
-        }
-
-        function getTotalFilesSize(fileArray) {
-            return fileArray.reduce((acc, curr) => acc + (curr.size || 0), 0);
-        }
-
-        function formatBytes(bytes, decimals = 2) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        }
-
-        // INITIALIZE PEERJS CONNECTION
-        function initPeerConnection(onReadyCallback = null) {
-            const randomID = Math.random().toString(36).substring(2, 8);
-            const generatedID = APP_ID_PREFIX + randomID;
-
-            peerInstance = new Peer(generatedID, {
-                debug: 1,
-                config: {
-                    'iceServers': [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' }
-                    ]
-                }
-            });
-
-            peerInstance.on('open', (id) => {
-                const statusEl = document.getElementById('connectionState');
-                statusEl.className = "text-xs font-semibold text-emerald-500 flex items-center justify-center gap-1";
-                statusEl.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Chờ quét mã...`;
-                
-                const readableId = id.replace(APP_ID_PREFIX, '');
-                document.getElementById('rawIdDisplay').textContent = readableId;
-                document.getElementById('peerIdLabel').textContent = "ID phòng: " + readableId;
-
-                const shareUrl = `${window.location.origin}${window.location.pathname}?join=${readableId}`;
-                document.getElementById('shareableLink').value = shareUrl;
-
-                const qrcodeContainer = document.getElementById('qrcode');
-                qrcodeContainer.innerHTML = "";
-                new QRCode(qrcodeContainer, {
-                    text: shareUrl,
-                    width: 140,
-                    height: 140,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-
-                if (onReadyCallback) onReadyCallback();
-            });
-
-            peerInstance.on('connection', (conn) => {
-                activeConnection = conn;
-                setupConnectionListeners(conn);
-            });
-
-            peerInstance.on('error', (err) => {
-                console.error('PeerJS error:', err);
-                const statusEl = document.getElementById('connectionState');
-                statusEl.className = "text-xs font-semibold text-rose-500 flex items-center justify-center gap-1";
-                statusEl.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-rose-500"></span> Thử lại...`;
-                
-                setTimeout(() => {
-                    initPeerConnection();
-                }, 4000);
-            });
-        }
-
-        // WEB RTC DATA TUNNEL LISTENERS
-        function setupConnectionListeners(conn) {
-            conn.on('open', () => {
-                const statusEl = document.getElementById('connectionState');
-                statusEl.className = "text-xs font-semibold text-blue-500 flex items-center justify-center gap-1";
-                statusEl.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Đã kết nối`;
-                
-                showNotification('Liên kết WebRTC thành công!');
-                
-                if (currentRole === 'sender' && (selectedFiles.length > 0 || document.getElementById('textPayload').value.trim() !== '')) {
-                    sendMetadata();
-                }
-            });
-
-            let receivedChunks = {};
-            
-            conn.on('data', (data) => {
-                if (data.type === 'metadata') {
-                    receivedFiles = data.files.map(f => ({
-                        ...f,
-                        selected: true,
-                        receivedChunks: [],
-                        downloaded: false
-                    }));
-                    
-                    if (data.text) {
-                        document.getElementById('receivedTextContainer').classList.remove('hidden');
-                        document.getElementById('receivedTextDisplay').textContent = data.text;
-                    } else {
-                        document.getElementById('receivedTextContainer').classList.add('hidden');
-                    }
-
-                    renderReceivedFiles();
-                    document.getElementById('previewDownloadPanel').classList.remove('hidden');
-                    updateStatisticsBar(receivedFiles.length, getTotalFilesSize(receivedFiles));
-                    switchRole('receiver');
-                    
-                    conn.send({ type: 'ready_to_receive' });
-                }
-                else if (data.type === 'ready_to_receive') {
-                    if (currentRole === 'sender') {
-                        transmitAllFilesSequential();
-                    }
-                }
-                else if (data.type === 'chunk') {
-                    const { fileId, chunkIndex, totalChunks, chunkData, fileName } = data;
-                    
-                    if (!receivedChunks[fileId]) {
-                        receivedChunks[fileId] = [];
-                    }
-                    
-                    receivedChunks[fileId][chunkIndex] = chunkData;
-                    
-                    const totalReceivedSoFar = Object.values(receivedChunks).reduce((acc, chunks) => acc + chunks.filter(Boolean).length, 0);
-                    const totalExpectedChunks = receivedFiles.reduce((acc, f) => acc + Math.ceil(f.size / CHUNK_SIZE), 0);
-                    const percent = Math.floor((totalReceivedSoFar / totalExpectedChunks) * 100);
-                    
-                    showTransferProgress(percent, `Đang nhận: ${fileName}`);
-
-                    if (receivedChunks[fileId].filter(Boolean).length === totalChunks) {
-                        const assembledBlob = new Blob(receivedChunks[fileId], { type: getFileType(fileName) });
-                        const objUrl = URL.createObjectURL(assembledBlob);
-                        
-                        const idx = receivedFiles.findIndex(f => f.id === fileId);
-                        if (idx !== -1) {
-                            receivedFiles[idx].objectUrl = objUrl;
-                            receivedFiles[idx].downloaded = true;
-                            renderReceivedFiles();
-                        }
-                    }
-
-                    if (percent >= 100) {
-                        setTimeout(() => {
-                            hideTransferProgress();
-                            showNotification('Đã nhận toàn bộ tệp!');
-                        }, 800);
-                    }
-                }
-            });
-
-            conn.on('close', () => {
-                const statusEl = document.getElementById('connectionState');
-                statusEl.className = "text-xs font-semibold text-slate-500 flex items-center justify-center gap-1";
-                statusEl.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-slate-400"></span> Đã ngắt`;
-                showNotification('Đối tác đã ngắt kết nối!');
-            });
-        }
-
-        // CAMERA SCANNER CONTROLLERS
-        function toggleCameraScanner() {
-            const scannerWrapper = document.getElementById('scannerWrapper');
-            const cameraBtnText = document.getElementById('cameraBtnText');
-
-            if (scannerWrapper.classList.contains('hidden')) {
-                scannerWrapper.classList.remove('hidden');
-                cameraBtnText.textContent = "Tắt Camera";
-                startCameraScanner();
-            } else {
-                stopCameraScanner();
+                btnReceiver.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-blue-700 shadow-sm";
+                btnSender.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-indigo-100 hover:text-white";
+                secReceiver.classList.remove('hidden');
+                secSender.classList.add('hidden');
             }
         }
 
-        function startCameraScanner() {
-            const config = { fps: 20, qrbox: { width: 220, height: 220 } };
-            html5QrScanner = new Html5Qrcode("interactiveReader");
-            
-            Html5Qrcode.getCameras().then(devices => {
-                if (devices && devices.length > 0) {
-                    // Ưu tiên camera sau
-                    let backCamera = devices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('sau'));
-                    let cameraId = backCamera ? backCamera.id : devices[0].id;
-                    
-                    html5QrScanner.start(
-                        cameraId, 
-                        config,
-                        (decodedText) => {
-                            handleScannedQRText(decodedText);
-                            stopCameraScanner();
-                        },
-                        (errorMessage) => {
-                            // Suppress logs
-                        }
-                    ).catch(err => {
-                        console.error("Camera error:", err);
-                        document.getElementById('scanFeedback').textContent = "Không khởi động được camera. Vui lòng cho phép quyền truy cập.";
-                    });
-                } else {
-                    document.getElementById('scanFeedback').textContent = "Không tìm thấy thiết bị camera.";
-                }
-            }).catch(err => {
-                console.error("Camera detect error:", err);
-                document.getElementById('scanFeedback').textContent = "Quyền camera bị từ chối.";
-            });
+        // Đếm ký tự của khu vực nhập văn bản
+        function updateCharCount() {
+            const txt = document.getElementById('text-input').value;
+            document.getElementById('char-count').innerText = `${txt.length} ký tự`;
         }
 
-        function stopCameraScanner() {
-            const scannerWrapper = document.getElementById('scannerWrapper');
-            const cameraBtnText = document.getElementById('cameraBtnText');
-            
-            scannerWrapper.classList.add('hidden');
-            cameraBtnText.textContent = "Kích hoạt Camera";
-
-            if (html5QrScanner) {
-                html5QrScanner.stop().then(() => {
-                    html5QrScanner = null;
-                }).catch(err => {
-                    console.error("Stop scanner error:", err);
-                });
-            }
-        }
-
-        function handleScannedQRText(text) {
-            try {
-                const url = new URL(text);
-                const joinId = url.searchParams.get('join');
-                if (joinId) {
-                    document.getElementById('manualPeerId').value = joinId;
-                    connectToSender(joinId);
-                } else {
-                    showNotification('Mã QR không khớp với dịch vụ này.');
-                }
-            } catch (e) {
-                const cleanText = text.trim();
-                if (cleanText) {
-                    document.getElementById('manualPeerId').value = cleanText;
-                    connectToSender(cleanText);
-                } else {
-                    showNotification('QR không đúng định dạng!');
-                }
-            }
-        }
-
-        // HANDLERS FOR FILE UPLOADS
+        // Xử lý kéo thả và duyệt tệp tin
         function handleFileSelect(event) {
             const files = event.target.files;
-            handleFiles(files);
+            processFiles(files);
         }
 
-        function handleFiles(files) {
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                selectedFiles.push({
-                    id: 'file-' + Math.random().toString(36).substring(2, 9),
-                    fileObject: file,
-                    name: file.name,
-                    size: file.size,
-                    type: file.type || getFileType(file.name)
-                });
-            }
-            renderSelectedFiles();
-            updateStatisticsBar(selectedFiles.length, getTotalFilesSize(selectedFiles));
+        // Kéo thả tệp vào dropzone
+        const dropzone = document.getElementById('dropzone');
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-blue-500', 'bg-blue-50/50');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
+            const files = e.dataTransfer.files;
+            processFiles(files);
+        });
+
+        // Đọc các tệp và chuyển đổi thành Base64 thực tế
+        function processFiles(files) {
+            if (!files || files.length === 0) return;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Data = e.target.result;
+                    selectedFiles.push({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type || 'application/octet-stream',
+                        data: base64Data // Chuỗi Base64 thật
+                    });
+                    renderFileList();
+                };
+                reader.onerror = function() {
+                    showToast('Có lỗi xảy ra khi đọc tệp!', 'error');
+                };
+                reader.readAsDataURL(file); // Thực hiện đọc tệp thật
+            });
         }
 
-        function renderSelectedFiles() {
-            const listEl = document.getElementById('selectedFilesList');
-            const containerEl = document.getElementById('selectedFilesContainer');
+        // Hiển thị danh sách các tệp đang chọn
+        function renderFileList() {
+            const container = document.getElementById('file-list-container');
+            const list = document.getElementById('file-list');
+            const fileCount = document.getElementById('file-count');
 
             if (selectedFiles.length === 0) {
-                containerEl.classList.add('hidden');
+                container.classList.add('hidden');
                 return;
             }
 
-            containerEl.classList.remove('hidden');
-            listEl.innerHTML = "";
+            container.classList.remove('hidden');
+            fileCount.innerText = selectedFiles.length;
+            list.innerHTML = '';
 
-            selectedFiles.forEach((f) => {
+            selectedFiles.forEach((file, index) => {
+                const sizeKb = (file.size / 1024).toFixed(1);
                 const item = document.createElement('div');
-                item.className = "flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-900/30 hover:bg-slate-100/50 transition-colors";
-                const iconName = getFileIcon(f.name);
-
+                item.className = "flex items-center justify-between bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-xs text-slate-700 transition hover:bg-slate-100/75";
                 item.innerHTML = `
-                    <div class="flex items-center space-x-2.5 truncate">
-                        <div class="p-2 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
-                            <i data-lucide="${iconName}" class="w-3.5 h-3.5"></i>
+                    <div class="flex items-center gap-2 overflow-hidden flex-grow mr-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                            ${getFileIcon(file.type)}
                         </div>
-                        <div class="truncate text-left">
-                            <p class="text-xs font-semibold truncate max-w-[180px]">${f.name}</p>
-                            <p class="text-[9px] text-slate-400 dark:text-slate-500">${formatBytes(f.size)}</p>
+                        <div class="overflow-hidden">
+                            <p class="font-bold truncate text-slate-800">${escapeHtml(file.name)}</p>
+                            <p class="text-[10px] text-slate-400 font-medium">${sizeKb} KB</p>
                         </div>
                     </div>
-                    <button onclick="removeSelectedFile('${f.id}')" class="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors">
-                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                    <button onclick="removeFile(${index})" class="text-slate-400 hover:text-rose-600 p-1.5 transition">
+                        <i class="fa-solid fa-xmark text-sm"></i>
                     </button>
                 `;
-                listEl.appendChild(item);
+                list.appendChild(item);
             });
-            lucide.createIcons();
         }
 
-        function removeSelectedFile(id) {
-            selectedFiles = selectedFiles.filter(f => f.id !== id);
-            renderSelectedFiles();
-            updateStatisticsBar(selectedFiles.length, getTotalFilesSize(selectedFiles));
+        // Lấy icon tương ứng định dạng file
+        function getFileIcon(mimeType) {
+            if (mimeType.startsWith('image/')) return '<i class="fa-solid fa-file-image"></i>';
+            if (mimeType.startsWith('video/')) return '<i class="fa-solid fa-file-video"></i>';
+            if (mimeType.startsWith('audio/')) return '<i class="fa-solid fa-file-audio"></i>';
+            if (mimeType.includes('pdf')) return '<i class="fa-solid fa-file-pdf"></i>';
+            if (mimeType.includes('word') || mimeType.includes('officedocument.word')) return '<i class="fa-solid fa-file-word"></i>';
+            if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '<i class="fa-solid fa-file-excel"></i>';
+            return '<i class="fa-solid fa-file-lines"></i>';
         }
 
-        function clearSelectedFiles() {
+        // Xóa tệp cụ thể khỏi danh sách chọn
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        // Xóa toàn bộ tệp khỏi danh sách
+        function clearAllFiles() {
             selectedFiles = [];
-            renderSelectedFiles();
-            updateStatisticsBar(0, 0);
+            renderFileList();
+            document.getElementById('file-input').value = '';
         }
 
-        function confirmAndGenerate() {
-            if (selectedFiles.length === 0 && document.getElementById('textPayload').value.trim() === '') {
-                showNotification('Hãy chọn tệp hoặc soạn nội dung tin nhắn trước!');
+        // Tạo chuỗi ký tự ngẫu nhiên duy nhất
+        function generateRandomId(length = 6) {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Không chứa các ký tự dễ gây nhầm lẫn
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Tạo liên kết chia sẻ tự động & Lưu trữ vào LocalStorage thực tế
+        function generateShareableLink() {
+            const textContent = document.getElementById('text-input').value.trim();
+
+            if (!textContent && selectedFiles.length === 0) {
+                showToast('Vui lòng nhập văn bản hoặc tải lên tệp để tạo chia sẻ!', 'warning');
                 return;
             }
 
-            document.getElementById('qrCodePanel').classList.remove('hidden');
-            document.getElementById('qrCodePanel').scrollIntoView({ behavior: 'smooth' });
-            showNotification('Đã mở cổng WebRTC, sẵn sàng kết nối!');
+            // Tạo mã bảo mật 6 chữ số ngẫu nhiên duy nhất
+            const shareId = generateRandomId(6);
 
-            if (activeConnection && activeConnection.open) {
-                sendMetadata();
-            }
-        }
-
-        function connectToSenderManual() {
-            const rawIdInput = document.getElementById('manualPeerId').value.trim();
-            if (!rawIdInput) {
-                showNotification('Hãy nhập mã kết nối của bên gửi!');
-                return;
-            }
-            connectToSender(rawIdInput);
-        }
-
-        function connectToSender(targetId) {
-            let finalPeerId = targetId;
-            if (!targetId.startsWith(APP_ID_PREFIX)) {
-                finalPeerId = APP_ID_PREFIX + targetId;
-            }
-
-            const statusEl = document.getElementById('connectionState');
-            statusEl.className = "text-xs font-semibold text-blue-500 flex items-center justify-center gap-1";
-            statusEl.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-bounce"></span> Đang ghép nối P2P...`;
-
-            activeConnection = peerInstance.connect(finalPeerId, {
-                reliable: true
-            });
-
-            setupConnectionListeners(activeConnection);
-        }
-
-        function sendMetadata() {
-            if (!activeConnection || !activeConnection.open) return;
-
-            const textToSend = document.getElementById('textPayload').value.trim();
-            
-            const metadataPayload = {
-                type: 'metadata',
-                text: textToSend,
-                files: selectedFiles.map(f => ({
-                    id: f.id,
-                    name: f.name,
-                    size: f.size,
-                    type: f.type
-                }))
+            // Gói dữ liệu
+            const payload = {
+                id: shareId,
+                timestamp: Date.now(),
+                text: textContent,
+                files: selectedFiles // Danh sách file thật chứa Base64
             };
 
-            activeConnection.send(metadataPayload);
-        }
-
-        async function transmitAllFilesSequential() {
-            showTransferProgress(0, "Chuẩn bị gửi...");
-            
-            for (let i = 0; i < selectedFiles.length; i++) {
-                const fileWrapper = selectedFiles[i];
-                await transmitSingleFile(fileWrapper);
-            }
-
-            showTransferProgress(100, "Đã hoàn tất!");
-            setTimeout(() => {
-                hideTransferProgress();
-                showNotification('Đã hoàn thành truyền tệp!');
-            }, 800);
-        }
-
-        function transmitSingleFile(fileWrapper) {
-            return new Promise((resolve) => {
-                const file = fileWrapper.fileObject;
-                const fileId = fileWrapper.id;
-                const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-                let currentChunkIndex = 0;
-
-                const reader = new FileReader();
-
-                reader.onload = function(e) {
-                    const chunkData = e.target.result;
-                    
-                    activeConnection.send({
-                        type: 'chunk',
-                        fileId: fileId,
-                        chunkIndex: currentChunkIndex,
-                        totalChunks: totalChunks,
-                        chunkData: chunkData,
-                        fileName: file.name
-                    });
-
-                    currentChunkIndex++;
-
-                    const percent = Math.floor((currentChunkIndex / totalChunks) * 100);
-                    showTransferProgress(percent, `Đang gửi: ${file.name}`);
-
-                    if (currentChunkIndex < totalChunks) {
-                        loadNextChunk();
-                    } else {
-                        resolve();
-                    }
-                };
-
-                function loadNextChunk() {
-                    const start = currentChunkIndex * CHUNK_SIZE;
-                    const end = Math.min(start + CHUNK_SIZE, file.size);
-                    const blobSlice = file.slice(start, end);
-                    reader.readAsArrayBuffer(blobSlice);
+            try {
+                // Kiểm tra giới hạn dung lượng localStorage (thường là 5MB)
+                const payloadStr = JSON.stringify(payload);
+                if (payloadStr.length > 5 * 1024 * 1024) {
+                    showToast('Tổng dung lượng tệp quá lớn! Vui lòng chọn tệp nhỏ hơn (dưới 3.5MB để lưu trữ an toàn).', 'error');
+                    return;
                 }
 
-                loadNextChunk();
+                // Lưu thực tế vào localStorage của người dùng
+                localStorage.setItem(`qr_share_${shareId}`, payloadStr);
+
+                // Tạo URL liên kết trực tiếp
+                // Sử dụng hash (#) để nhận diện tự động khi tải trang
+                const currentUrl = window.location.href.split('#')[0];
+                const shareLink = `${currentUrl}#code=${shareId}`;
+
+                // Cập nhật giao diện kết quả
+                document.getElementById('share-id-display').innerText = shareId;
+                document.getElementById('share-link-display').value = shareLink;
+
+                // Tạo mã QR Code thật
+                const qrcodeContainer = document.getElementById('qrcode');
+                qrcodeContainer.innerHTML = ''; // Clear mã cũ
+                
+                new QRCode(qrcodeContainer, {
+                    text: shareLink,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#0f172a", // Navy đậm cho sang trọng
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                // Hiển thị khung kết quả
+                document.getElementById('sender-result').classList.remove('hidden');
+                
+                // Cuộn xuống khu vực kết quả mượt mà
+                document.getElementById('sender-result').scrollIntoView({ behavior: 'smooth' });
+
+                showToast('Tạo liên kết chia sẻ thành công!', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Không thể lưu dữ liệu! Dung lượng tệp vượt quá khả năng lưu của trình duyệt.', 'error');
+            }
+        }
+
+        // Tải xuống hình ảnh mã QR Code đã tạo
+        function downloadQRCode() {
+            const qrcodeImg = document.querySelector('#qrcode img');
+            if (!qrcodeImg) {
+                showToast('Chưa có mã QR được tạo!', 'warning');
+                return;
+            }
+
+            const shareId = document.getElementById('share-id-display').innerText;
+            const link = document.createElement('a');
+            link.href = qrcodeImg.src;
+            link.download = `QRShare_Code_${shareId}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Đang tải xuống mã QR!', 'success');
+        }
+
+        // ================= XỬ LÝ CAMERA QUÉT MÃ QR (NGƯỜI NHẬN) =================
+
+        // Khởi chạy trình quét QR qua Camera
+        function startScanner() {
+            // Hiển thị phần UI camera
+            document.getElementById('camera-placeholder').classList.add('hidden');
+            document.getElementById('scan-bar').classList.remove('hidden');
+
+            // Hiển thị các nút điều khiển tương ứng
+            document.getElementById('btn-start-camera').classList.add('hidden');
+            document.getElementById('btn-stop-camera').classList.remove('hidden');
+
+            // Cấu hình quét mã
+            html5QrCode = new Html5Qrcode("camera-reader");
+            
+            const config = { 
+                fps: 15, 
+                qrbox: { width: 220, height: 220 } 
+            };
+
+            // Yêu cầu quyền camera và khởi động
+            html5QrCode.start(
+                { facingMode: "environment" }, // Ưu tiên camera sau trên di động
+                config,
+                (decodedText) => {
+                    // Thành công nhận diện mã QR
+                    handleDecodedQR(decodedText);
+                    stopScanner();
+                },
+                (errorMessage) => {
+                    // Log quét lỗi bình thường (bỏ qua khi đang rà quét liên tục)
+                }
+            ).catch(err => {
+                console.error(err);
+                showToast('Không thể truy cập camera! Vui lòng cấp quyền hoặc nhập mã thủ công.', 'error');
+                resetScannerUI();
             });
         }
 
-        function showTransferProgress(percent, desc) {
-            const modal = document.getElementById('transferProgressModal');
-            const percentLabel = document.getElementById('transferPercentage');
-            const progressBar = document.getElementById('progressBar');
-            const descLabel = document.getElementById('transferFileDetails');
-
-            modal.classList.remove('hidden');
-            percentLabel.textContent = `${percent}%`;
-            progressBar.style.width = `${percent}%`;
-            descLabel.textContent = desc;
+        // Tắt trình quét camera
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    resetScannerUI();
+                }).catch(err => {
+                    console.error(err);
+                    resetScannerUI();
+                });
+            } else {
+                resetScannerUI();
+            }
         }
 
-        function hideTransferProgress() {
-            document.getElementById('transferProgressModal').classList.add('hidden');
+        // Đưa UI quét về mặc định
+        function resetScannerUI() {
+            document.getElementById('camera-placeholder').classList.remove('hidden');
+            document.getElementById('scan-bar').classList.add('hidden');
+            document.getElementById('btn-start-camera').classList.remove('hidden');
+            document.getElementById('btn-stop-camera').classList.add('hidden');
+            
+            const readerDiv = document.getElementById('camera-reader');
+            readerDiv.innerHTML = ''; // Làm sạch khung video
         }
 
-        function renderReceivedFiles() {
-            const listEl = document.getElementById('receivedFilesList');
-            listEl.innerHTML = "";
+        // Xử lý chuỗi mã URL hoặc chuỗi văn bản sau khi quét QR thành công
+        function handleDecodedQR(text) {
+            showToast('Đã quét thấy mã QR!', 'success');
+            
+            // Tìm mã Code 6 ký tự trong liên kết (ví dụ #code=ABCDEF)
+            let shareId = '';
+            if (text.includes('#code=')) {
+                shareId = text.split('#code=')[1].substring(0, 6);
+            } else {
+                // Thử nhận diện trực tiếp bằng chuỗi 6 ký tự viết hoa
+                const cleanText = text.trim().toUpperCase();
+                if (cleanText.length === 6) {
+                    shareId = cleanText;
+                }
+            }
 
-            receivedFiles.forEach((f) => {
-                const item = document.createElement('div');
-                item.className = "flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/30 hover:bg-slate-100/50 transition-all";
-                
-                const iconName = getFileIcon(f.name);
-                const isSelected = f.selected ? 'checked' : '';
-                
-                let actionBtnMarkup = `
-                    <span class="text-[9px] text-amber-500 font-bold flex items-center gap-1 shrink-0">
-                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                        Đợi truyền...
-                    </span>
-                `;
+            if (shareId && shareId.length === 6) {
+                document.getElementById('manual-code-input').value = shareId;
+                retrieveDataByCode(shareId);
+            } else {
+                // Trường hợp quét mã QR văn bản ngoài, không thuộc cấu trúc của web
+                // Hiển thị nội dung trực tiếp như tin nhắn văn bản thường
+                displayRawTextResult(text);
+            }
+        }
 
-                if (f.downloaded && f.objectUrl) {
-                    actionBtnMarkup = `
-                        <a href="${f.objectUrl}" download="${f.name}" class="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-lg transition-colors flex items-center justify-center shrink-0" title="Tải về máy">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                        </a>
+        // Tìm kiếm và hiển thị dữ liệu thật dựa trên Mã nhận dạng
+        function retrieveDataByCode(specifiedCode = null) {
+            const shareId = (specifiedCode || document.getElementById('manual-code-input').value).trim().toUpperCase();
+
+            if (!shareId || shareId.length !== 6) {
+                showToast('Vui lòng nhập đúng mã bảo mật gồm 6 ký tự!', 'warning');
+                return;
+            }
+
+            // Tìm kiếm trong bộ nhớ LocalStorage thực tế
+            const localDataStr = localStorage.getItem(`qr_share_${shareId}`);
+
+            if (!localDataStr) {
+                showToast('Không tìm thấy tệp hoặc văn bản tương ứng với mã này!', 'error');
+                // Ẩn bảng kết quả cũ
+                document.getElementById('receiver-result').classList.add('hidden');
+                return;
+            }
+
+            try {
+                const payload = JSON.parse(localDataStr);
+                renderReceivedPayload(payload);
+            } catch (err) {
+                console.error(err);
+                showToast('Tệp dữ liệu bị hỏng, không thể khôi phục!', 'error');
+            }
+        }
+
+        // Hiển thị trực tiếp dữ liệu dạng văn bản tự do ngoài hệ thống
+        function displayRawTextResult(text) {
+            const resultBox = document.getElementById('receiver-result');
+            const txtBox = document.getElementById('received-text-box');
+            const fileBox = document.getElementById('received-files-box');
+
+            document.getElementById('result-code-tag').innerText = "VĂN BẢN QUÉT";
+            document.getElementById('received-text').innerText = text;
+            txtBox.classList.remove('hidden');
+            fileBox.classList.add('hidden');
+
+            resultBox.classList.remove('hidden');
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Hiển thị payload nhận được lên giao diện của Người nhận
+        function renderReceivedPayload(payload) {
+            const resultBox = document.getElementById('receiver-result');
+            const txtBox = document.getElementById('received-text-box');
+            const fileBox = document.getElementById('received-files-box');
+            const fileList = document.getElementById('received-files-list');
+
+            // Gán mã định danh
+            document.getElementById('result-code-tag').innerText = `MÃ CHIA SẺ: ${payload.id}`;
+
+            // Xử lý Văn bản
+            if (payload.text) {
+                document.getElementById('received-text').innerText = payload.text;
+                txtBox.classList.remove('hidden');
+            } else {
+                txtBox.classList.add('hidden');
+            }
+
+            // Xử lý Danh sách file đính kèm thực tế
+            if (payload.files && payload.files.length > 0) {
+                document.getElementById('received-files-count').innerText = payload.files.length;
+                fileList.innerHTML = '';
+
+                payload.files.forEach((file, index) => {
+                    const sizeKb = (file.size / 1024).toFixed(1);
+                    const fileItem = document.createElement('div');
+                    fileItem.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs transition hover:bg-slate-100/70";
+                    fileItem.innerHTML = `
+                        <div class="flex items-center gap-3 overflow-hidden w-full sm:w-auto">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 text-base">
+                                ${getFileIcon(file.type)}
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="font-bold text-slate-800 text-sm truncate max-w-[250px] sm:max-w-[320px]">${escapeHtml(file.name)}</p>
+                                <p class="text-[10px] text-slate-400 font-medium">${sizeKb} KB · ${file.type}</p>
+                            </div>
+                        </div>
+                        <button onclick="downloadSingleFile(${index}, '${escapeQuotes(file.name)}', '${file.data}')" class="w-full sm:w-auto px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-[11px] transition flex items-center justify-center gap-1.5 self-stretch sm:self-auto shadow-sm active:scale-95">
+                            <i class="fa-solid fa-download"></i> Tải Xuống
+                        </button>
                     `;
-                }
+                    fileList.appendChild(fileItem);
+                });
+                fileBox.classList.remove('hidden');
+            } else {
+                fileBox.classList.add('hidden');
+            }
 
-                item.innerHTML = `
-                    <div class="flex items-center space-x-2.5 truncate mr-2">
-                        <input type="checkbox" ${isSelected} onchange="toggleSelectReceivedFile('${f.id}')" class="w-3.5 h-3.5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 shrink-0">
-                        <div class="p-1.5 bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
-                            <i data-lucide="${iconName}" class="w-3.5 h-3.5"></i>
-                        </div>
-                        <div class="truncate text-left">
-                            <p class="text-xs font-semibold truncate max-w-[150px]">${f.name}</p>
-                            <p class="text-[9px] text-slate-400 dark:text-slate-500">${formatBytes(f.size)}</p>
-                        </div>
-                    </div>
-                    ${actionBtnMarkup}
-                `;
-                listEl.appendChild(item);
-            });
-            lucide.createIcons();
+            // Hiển thị block kết quả
+            resultBox.classList.remove('hidden');
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+            showToast('Tải dữ liệu tương ứng thành công!', 'success');
         }
 
-        function toggleSelectReceivedFile(id) {
-            const idx = receivedFiles.findIndex(f => f.id === id);
-            if (idx !== -1) {
-                receivedFiles[idx].selected = !receivedFiles[idx].selected;
+        // Tải xuống một tệp tin duy nhất
+        function downloadSingleFile(index, fileName, base64Data) {
+            try {
+                const link = document.createElement('a');
+                link.href = base64Data;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast(`Đang tải tệp: ${fileName}`, 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Tải tệp tin thất bại!', 'error');
             }
         }
 
-        function selectAllReceivedFiles(val) {
-            receivedFiles.forEach(f => {
-                f.selected = val;
-            });
-            renderReceivedFiles();
-        }
-
-        function downloadSelectedFiles() {
-            const toDownload = receivedFiles.filter(f => f.selected && f.downloaded && f.objectUrl);
-            if (toDownload.length === 0) {
-                showNotification('Không có tệp nào đã sẵn sàng tải!');
+        // Tải xuống toàn bộ tệp tin trong danh sách cùng một lúc
+        function downloadAllFiles() {
+            const listItems = document.getElementById('received-files-list').children;
+            if (listItems.length === 0) {
+                showToast('Không có tệp nào để tải xuống!', 'warning');
                 return;
             }
 
-            toDownload.forEach(f => {
-                const a = document.createElement('a');
-                a.href = f.objectUrl;
-                a.download = f.name;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            // Nhấp vào nút Tải Xuống của từng item liên tiếp
+            const buttons = document.querySelectorAll('#received-files-list button');
+            buttons.forEach((btn, index) => {
+                setTimeout(() => {
+                    btn.click();
+                }, index * 400); // Tránh trình duyệt chặn tải hàng loạt
             });
-            showNotification(`Đã tải về máy thành công!`);
+            showToast('Đang tiến hành tải hàng loạt các tệp!', 'success');
         }
 
-        function getFileType(fileName) {
-            const ext = fileName.split('.').pop().toLowerCase();
-            const mimeMap = {
-                'pdf': 'application/pdf',
-                'doc': 'application/msword',
-                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'xls': 'application/vnd.ms-excel',
-                'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'png': 'image/png',
-                'jpg': 'image/jpeg',
-                'jpeg': 'image/jpeg',
-                'gif': 'image/gif',
-                'svg': 'image/svg+xml',
-                'mp4': 'video/mp4',
-                'mp3': 'audio/mpeg',
-                'zip': 'application/zip',
-                'rar': 'application/x-rar-compressed'
-            };
-            return mimeMap[ext] || 'application/octet-stream';
+        // Kiểm tra mã Code tự động từ URL Hash
+        function checkUrlHash() {
+            const hash = window.location.hash;
+            if (hash && hash.includes('code=')) {
+                const code = hash.split('code=')[1].substring(0, 6).toUpperCase();
+                if (code.length === 6) {
+                    // Chuyển sang Tab Người nhận
+                    switchTab('receiver');
+                    // Gán mã và tải
+                    document.getElementById('manual-code-input').value = code;
+                    setTimeout(() => {
+                        retrieveDataByCode(code);
+                    }, 500);
+                }
+            }
         }
 
-        function getFileIcon(fileName) {
-            const ext = fileName.split('.').pop().toLowerCase();
-            switch (ext) {
-                case 'pdf':
-                    return 'file-text';
-                case 'doc':
-                case 'docx':
-                    return 'file-digit';
-                case 'xls':
-                case 'xlsx':
-                    return 'file-spreadsheet';
-                case 'png':
-                case 'jpg':
-                case 'jpeg':
-                case 'gif':
-                case 'svg':
-                    return 'image';
-                case 'mp4':
-                case 'mkv':
-                case 'avi':
-                case 'mov':
-                    return 'video';
-                case 'mp3':
-                case 'wav':
-                    return 'music';
-                case 'zip':
-                case 'rar':
-                case '7z':
-                    return 'archive';
-                default:
-                    return 'file';
+        // ================= UTILITY FUNCTIONS =================
+
+        // Tránh tiêm nhiễm HTML khi render tên file
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Xử lý chuỗi nháy đơn khi truyền tham số cho hàm download
+        function escapeQuotes(str) {
+            return str.replace(/'/g, "\\'");
+        }
+
+        // Hiển thị Toast thông báo nhanh chóng
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastMessage = document.getElementById('toast-message');
+
+            // Định cấu hình màu sắc tương ứng
+            if (type === 'success') {
+                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform text-sm font-medium bg-emerald-50 border border-emerald-100 text-emerald-800";
+                toastIcon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
+            } else if (type === 'error') {
+                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform text-sm font-medium bg-rose-50 border border-rose-100 text-rose-800";
+                toastIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-600"></i>';
+            } else if (type === 'warning') {
+                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform text-sm font-medium bg-amber-50 border border-amber-100 text-amber-800";
+                toastIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-600"></i>';
+            } else {
+                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform text-sm font-medium bg-blue-50 border border-blue-100 text-blue-800";
+                toastIcon.innerHTML = '<i class="fa-solid fa-circle-info text-blue-600"></i>';
+            }
+
+            toastMessage.innerText = message;
+            
+            // Hiện Toast
+            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            // Tự động ẩn sau 3.5 giây
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-100px]', 'opacity-0');
+            }, 3500);
+        }
+
+        // Sao chép văn bản vào clipboard an toàn không dùng API hạn chế
+        function copyToClipboard(elementIdOrValue, label = 'Nội dung') {
+            let valueToCopy = "";
+            const element = document.getElementById(elementIdOrValue);
+
+            if (element) {
+                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                    valueToCopy = element.value;
+                } else {
+                    valueToCopy = element.innerText;
+                }
+            } else {
+                valueToCopy = elementIdOrValue;
+            }
+
+            // Tạo thẻ textarea phụ ẩn để copy (Tương thích tốt môi trường Iframe)
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = valueToCopy;
+            tempTextArea.style.position = "fixed";
+            tempTextArea.style.left = "-9999px";
+            tempTextArea.style.top = "-9999px";
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                document.execCommand("copy");
+                showToast(`Đã sao chép ${label.toLowerCase()} vào bộ nhớ tạm!`, 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Sao chép thất bại!', 'error');
+            } finally {
+                document.body.removeChild(tempTextArea);
             }
         }
     </script>
