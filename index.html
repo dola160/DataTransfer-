@@ -1,543 +1,820 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>📁 Chia Sẻ Tệp & Văn Bản An Toàn</title>
-  <!-- Font Awesome 6 cho icon đẹp -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      background: linear-gradient(145deg, #f0f4ff 0%, #e6ecf8 100%);
-      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-    }
-    .app-container {
-      width: 100%;
-      max-width: 600px;
-      background: rgba(255,255,255,0.8);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      background: #ffffff;
-      border-radius: 36px;
-      box-shadow: 0 25px 50px -10px rgba(0,20,50,0.25);
-      padding: 20px 20px 28px;
-      border: 1px solid rgba(255,255,255,0.7);
-    }
-    h1 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.7rem;
-      font-weight: 700;
-      color: #0b2b4f;
-      margin-bottom: 24px;
-      letter-spacing: -0.3px;
-    }
-    h1 i {
-      color: #1e4a7a;
-      font-size: 2rem;
-      background: #e9f0ff;
-      padding: 6px;
-      border-radius: 16px;
-    }
-    .tab-container {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-      background: #f2f5fc;
-      padding: 6px;
-      border-radius: 50px;
-    }
-    .tab-btn {
-      flex: 1;
-      text-align: center;
-      padding: 12px 8px;
-      border-radius: 40px;
-      font-weight: 600;
-      font-size: 1rem;
-      background: transparent;
-      border: none;
-      color: #3b4b62;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      cursor: pointer;
-    }
-    .tab-btn.active {
-      background: white;
-      box-shadow: 0 8px 18px rgba(0,80,150,0.15);
-      color: #0a3a6a;
-      font-weight: 700;
-    }
-    .panel {
-      display: none;
-      animation: fade 0.25s ease;
-    }
-    .panel.active {
-      display: block;
-    }
-    @keyframes fade { from { opacity: 0.4; } to { opacity: 1; } }
-    .card {
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 20px;
-      box-shadow: 0 6px 22px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-      border: 1px solid #edf2f9;
-    }
-    .file-area {
-      border: 2px dashed #b7c9e5;
-      border-radius: 24px;
-      padding: 28px 16px;
-      text-align: center;
-      background: #fafcff;
-      transition: 0.2s;
-      cursor: pointer;
-    }
-    .file-area i {
-      font-size: 2.5rem;
-      color: #2c5282;
-      margin-bottom: 8px;
-    }
-    .file-list {
-      margin-top: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .file-tag {
-      background: #eef3ff;
-      border-radius: 30px;
-      padding: 6px 14px;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #10355e;
-    }
-    textarea, input[type="text"] {
-      width: 100%;
-      border: 1px solid #dce3ef;
-      border-radius: 20px;
-      padding: 14px 16px;
-      font-size: 0.95rem;
-      background: #fbfdff;
-      resize: vertical;
-      margin: 8px 0;
-    }
-    .btn {
-      background: #0f3b5c;
-      border: none;
-      color: white;
-      font-weight: 600;
-      padding: 14px 20px;
-      border-radius: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 8px 18px rgba(9, 50, 90, 0.2);
-      width: 100%;
-      margin-top: 10px;
-    }
-    .btn-secondary {
-      background: #eef2f9;
-      color: #1a3650;
-      box-shadow: none;
-      font-weight: 600;
-    }
-    .qr-box {
-      background: white;
-      padding: 16px;
-      border-radius: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    #qrCanvas, #qrCodeContainer canvas {
-      max-width: 180px;
-      height: auto;
-      border-radius: 12px;
-    }
-    .flex-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .hidden {
-      display: none;
-    }
-    .reader-box {
-      width: 100%;
-      border-radius: 24px;
-      overflow: hidden;
-      margin: 12px 0;
-    }
-    .status-message {
-      font-weight: 500;
-      color: #1d4b6e;
-      background: #eaf3ff;
-      padding: 8px 14px;
-      border-radius: 30px;
-      font-size: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chia Sẻ Tệp & Văn Bản An Toàn</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --radius: 16px;
+    --shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .header {
+    text-align: center;
+    padding: 30px 0 20px;
+  }
+  .header h1 {
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header p { color: var(--text-muted); font-size: 0.95rem; }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: var(--card);
+    padding: 6px;
+    border-radius: var(--radius);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .tab-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+  }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title i { color: var(--primary); }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: rgba(99,102,241,0.03);
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(99,102,241,0.08);
+  }
+  .drop-zone i { font-size: 2.5rem; color: var(--primary); margin-bottom: 12px; }
+  .drop-zone p { color: var(--text-muted); font-size: 0.9rem; }
+  #fileInput { display: none; }
+  .file-list { margin-top: 16px; }
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+  }
+  .file-item i { color: var(--warning); font-size: 1.3rem; }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-size { color: var(--text-muted); font-size: 0.8rem; }
+  .file-remove {
+    background: var(--danger);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    color: var(--text);
+    font-size: 0.95rem;
+    resize: vertical;
+    font-family: inherit;
+  }
+  textarea:focus { outline: none; border-color: var(--primary); }
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(99,102,241,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-secondary {
+    background: var(--border);
+    color: var(--text);
+  }
+  .btn-success { background: var(--success); color: white; }
+  .result-box {
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+  }
+  .result-box h3 { color: var(--success); margin-bottom: 12px; }
+  .share-code {
+    font-family: 'Courier New', monospace;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: var(--primary);
+    background: rgba(99,102,241,0.1);
+    padding: 12px 24px;
+    border-radius: 10px;
+    display: inline-block;
+    margin: 10px 0;
+    border: 1px dashed var(--primary);
+  }
+  .qr-wrap {
+    margin: 16px auto;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    display: inline-block;
+  }
+  .qr-wrap canvas, .qr-wrap img { display: block; }
+  .action-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .action-btns .btn { flex: 1; min-width: 140px; }
+  .input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .input-group input {
+    flex: 1;
+    padding: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .input-group input:focus { outline: none; border-color: var(--primary); }
+  .scanner-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid var(--primary);
+    background: #000;
+  }
+  #reader { width: 100%; min-height: 280px; }
+  .scanner-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .scanner-frame {
+    width: 200px;
+    height: 200px;
+    border: 2px solid var(--success);
+    border-radius: 16px;
+    position: relative;
+  }
+  .scanner-frame::before, .scanner-frame::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    border: 3px solid var(--success);
+  }
+  .scanner-frame::before { top: -2px; left: -2px; border-right: none; border-bottom: none; border-radius: 12px 0 0 0; }
+  .scanner-frame::after { bottom: -2px; right: -2px; border-left: none; border-top: none; border-radius: 0 0 12px 0; }
+  .scanner-line {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--success);
+    box-shadow: 0 0 10px var(--success);
+    animation: scan 2s ease-in-out infinite;
+  }
+  @keyframes scan { 0%,100% { top: 0; } 50% { top: 100%; } }
+  .received-files { margin-top: 20px; }
+  .received-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .received-item:hover { border-color: var(--primary); background: rgba(99,102,241,0.05); }
+  .received-item input[type="checkbox"] {
+    width: 20px; height: 20px;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+  .received-item i { font-size: 1.4rem; color: var(--warning); }
+  .received-item .info { flex: 1; }
+  .received-item .name { font-weight: 600; font-size: 0.95rem; }
+  .received-item .meta { color: var(--text-muted); font-size: 0.8rem; }
+  .received-item .download-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .received-text {
+    background: rgba(99,102,241,0.08);
+    border: 1px solid var(--primary);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state i { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+  .alert {
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .alert-success { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+  .alert-error { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+  .alert-info { background: rgba(99,102,241,0.1); color: var(--primary); border: 1px solid rgba(99,102,241,0.3); }
+  .hidden { display: none !important; }
+  .select-all-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  @media (max-width: 600px) {
+    .header h1 { font-size: 1.4rem; }
+    .share-code { font-size: 1.4rem; letter-spacing: 2px; }
+    .action-btns .btn { min-width: 100%; }
+  }
+</style>
 </head>
 <body>
-<div class="app-container">
-  <h1>
-    <i class="fas fa-shield-alt"></i> Chia sẻ an toàn
-  </h1>
 
-  <div class="tab-container">
-    <button class="tab-btn active" id="tabSender"><i class="fas fa-upload"></i> Gửi</button>
-    <button class="tab-btn" id="tabReceiver"><i class="fas fa-download"></i> Nhận</button>
+<div class="container">
+  <div class="header">
+    <h1><i class="fas fa-shield-halved"></i> Chia Sẻ Tệp & Văn Bản An Toàn</h1>
+    <p>Lưu trữ thật · Đối chiếu chính xác · Hiển thị đầy đủ 100%</p>
   </div>
 
-  <!-- PANEL NGƯỜI GỬI -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('sender')">
+      <i class="fas fa-paper-plane"></i> Người Gửi
+    </button>
+    <button class="tab-btn" onclick="switchTab('receiver')">
+      <i class="fas fa-inbox"></i> Người Nhận
+    </button>
+  </div>
+
+  <!-- SENDER PANEL -->
   <div id="senderPanel" class="panel active">
     <div class="card">
-      <div class="file-area" id="dropArea">
-        <i class="fas fa-cloud-upload-alt"></i>
-        <p><strong>Chạm để chọn tệp</strong><br><small>hoặc kéo thả vào đây</small></p>
-        <input type="file" id="fileInput" multiple hidden>
+      <div class="card-title"><i class="fas fa-cloud-upload-alt"></i> Tải lên tệp</div>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <i class="fas fa-cloud-arrow-up"></i>
+        <p><strong>Nhấn để chọn tệp</strong> hoặc kéo thả vào đây</p>
+        <p style="font-size:0.8rem;margin-top:6px;">Hỗ trợ mọi định dạng · Tối đa 10MB/tệp</p>
       </div>
-      <div id="selectedFilesList" class="file-list"></div>
-      <textarea id="textContent" placeholder="Hoặc nhập văn bản muốn chia sẻ..."></textarea>
-      <button class="btn" id="generateBtn"><i class="fas fa-qrcode"></i> Tạo Link & Mã QR</button>
+      <input type="file" id="fileInput" multiple onchange="handleFileSelect(event)">
+      <div class="file-list" id="senderFileList"></div>
     </div>
-    <div id="shareResult" class="card hidden">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span class="status-message"><i class="fas fa-check-circle"></i> <span id="saveConfirm"></span></span>
-      </div>
-      <div style="margin: 16px 0;">
-        <input type="text" id="shareLinkDisplay" readonly placeholder="Link chia sẻ...">
-      </div>
-      <div class="qr-box" id="qrCodeContainer"></div>
-      <div class="flex-row" style="margin-top: 14px;">
-        <button class="btn-secondary" id="copyLinkBtn" style="flex:1;"><i class="fas fa-copy"></i> Sao chép link</button>
-        <button class="btn-secondary" id="downloadQrBtn" style="flex:1;"><i class="fas fa-download"></i> Tải QR</button>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-keyboard"></i> Nhập văn bản chia sẻ</div>
+      <textarea id="shareText" placeholder="Nhập nội dung văn bản bạn muốn chia sẻ..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" id="createShareBtn" onclick="createShare()">
+      <i class="fas fa-lock"></i> Tạo Link & Mã QR
+    </button>
+
+    <div id="senderResult" class="hidden">
+      <div class="result-box">
+        <h3><i class="fas fa-check-circle"></i> Đã lưu tệp thành công</h3>
+        <p style="color:var(--text-muted);margin-bottom:8px;">Mã chia sẻ của bạn:</p>
+        <div class="share-code" id="displayCode">----</div>
+        <div class="qr-wrap" id="qrWrap"></div>
+        <div class="action-btns">
+          <button class="btn btn-secondary" onclick="copyLink()">
+            <i class="fas fa-link"></i> Sao chép Link
+          </button>
+          <button class="btn btn-secondary" onclick="downloadQR()">
+            <i class="fas fa-download"></i> Tải QR
+          </button>
+          <button class="btn btn-success" onclick="shareNative()">
+            <i class="fas fa-share-alt"></i> Chia sẻ nhanh
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- PANEL NGƯỜI NHẬN -->
+  <!-- RECEIVER PANEL -->
   <div id="receiverPanel" class="panel">
     <div class="card">
-      <button class="btn" id="startScanBtn"><i class="fas fa-camera"></i> Quét mã QR</button>
-      <div id="readerContainer" class="reader-box hidden"></div>
-      <p style="text-align:center; margin:12px 0;">hoặc</p>
-      <input type="text" id="manualCodeInput" placeholder="Nhập mã chia sẻ thủ công">
-      <button class="btn" id="fetchByCodeBtn"><i class="fas fa-search"></i> Truy xuất dữ liệu</button>
-      <div id="receiverStatus" style="margin-top: 12px;"></div>
-    </div>
-    <div id="receivedContent" class="card hidden">
-      <h4 style="margin-bottom: 10px;"><i class="fas fa-folder-open"></i> Tệp & văn bản nhận được</h4>
-      <div id="textPreview" style="background:#f4f7fd; padding:12px; border-radius:16px; margin-bottom:12px;"></div>
-      <div id="receivedFilesList" class="file-list" style="margin-bottom:12px;"></div>
-      <div class="flex-row">
-        <button class="btn-secondary" id="downloadAllBtn"><i class="fas fa-download"></i> Tải tất cả</button>
+      <div class="card-title"><i class="fas fa-qrcode"></i> Quét mã QR</div>
+      <div class="scanner-wrap">
+        <div id="reader"></div>
+        <div class="scanner-overlay">
+          <div class="scanner-frame">
+            <div class="scanner-line"></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-bottom:12px;">
+        <button class="btn btn-secondary" id="camBtn" onclick="toggleCamera()" style="width:auto;padding:10px 24px;display:inline-flex;">
+          <i class="fas fa-camera"></i> <span id="camBtnText">Bật Camera</span>
+        </button>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-keyboard"></i> Hoặc nhập mã thủ công</div>
+      <div class="input-group">
+        <input type="text" id="manualCode" placeholder="Nhập mã 6 chữ số" maxlength="6">
+        <button class="btn btn-primary" style="width:auto;padding:14px 28px;" onclick="manualRetrieve()">
+          <i class="fas fa-search"></i> Tìm
+        </button>
+      </div>
+    </div>
+
+    <div id="receiverAlert"></div>
+    <div id="receiverContent"></div>
   </div>
 </div>
 
-<!-- Thư viện QR code & html5-qrcode -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
 <script>
-  (function() {
-    // ---------- STORAGE ENGINE ----------
-    const STORAGE_KEY = 'secure_share_db';
-    function getDB() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    }
-    function saveDB(db) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-    }
+  // ====== DATA STORE (IndexedDB) ======
+  const DB_NAME = 'SafeShareDB';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'shares';
+  let db = null;
+  let currentShareCode = '';
+  let senderFiles = [];
+  let html5QrCode = null;
+  let camRunning = false;
 
-    // Lưu dữ liệu vào mã chia sẻ: { files: [{name, dataUrl}], text: string }
-    function storeShareData(code, filesArray, text) {
-      const db = getDB();
-      db[code] = {
-        files: filesArray,  // mỗi file: { name, dataUrl (base64) }
-        text: text || '',
-        created: Date.now()
+  function initDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onerror = () => reject(req.error);
+      req.onsuccess = () => { db = req.result; resolve(); };
+      req.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains(STORE_NAME)) {
+          d.createObjectStore(STORE_NAME, { keyPath: 'code' });
+        }
       };
-      saveDB(db);
-    }
-
-    function getShareData(code) {
-      const db = getDB();
-      return db[code] || null;
-    }
-
-    // ---------- GLOBAL STATE ----------
-    let selectedFiles = []; // { name, dataUrl }
-    const senderPanel = document.getElementById('senderPanel');
-    const receiverPanel = document.getElementById('receiverPanel');
-    const tabSender = document.getElementById('tabSender');
-    const tabReceiver = document.getElementById('tabReceiver');
-
-    // Chuyển tab
-    tabSender.addEventListener('click', ()=>{
-      tabSender.classList.add('active');
-      tabReceiver.classList.remove('active');
-      senderPanel.classList.add('active');
-      receiverPanel.classList.remove('active');
-      stopScanner();
     });
-    tabReceiver.addEventListener('click', ()=>{
-      tabReceiver.classList.add('active');
-      tabSender.classList.remove('active');
-      receiverPanel.classList.add('active');
-      senderPanel.classList.remove('active');
+  }
+
+  async function saveShare(code, data) {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.put({ code, data, created: Date.now() });
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
     });
+  }
 
-    // ----- FILE SELECTION (NGƯỜI GỬI) -----
-    const fileInput = document.getElementById('fileInput');
-    const dropArea = document.getElementById('dropArea');
-    const selectedFilesList = document.getElementById('selectedFilesList');
-    const textContent = document.getElementById('textContent');
-
-    dropArea.addEventListener('click', ()=> fileInput.click());
-    fileInput.addEventListener('change', handleFiles);
-    dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.style.borderColor='#1e4a7a'; });
-    dropArea.addEventListener('dragleave', ()=> dropArea.style.borderColor='#b7c9e5');
-    dropArea.addEventListener('drop', e => {
-      e.preventDefault();
-      dropArea.style.borderColor='#b7c9e5';
-      if(e.dataTransfer.files.length) processFiles(e.dataTransfer.files);
+  async function getShare(code) {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get(code);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
     });
+  }
 
-    function handleFiles(e) {
-      if(e.target.files.length) processFiles(e.target.files);
-      fileInput.value = '';
-    }
+  // ====== UTILITIES ======
+  function generateCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/(1024*1024)).toFixed(1) + ' MB';
+  }
+  function showAlert(elId, type, msg) {
+    const el = document.getElementById(elId);
+    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : 'info-circle';
+    el.innerHTML = `<div class="alert alert-${type}"><i class="fas fa-${icon}"></i> ${msg}</div>`;
+    el.classList.remove('hidden');
+  }
+  function clearAlert(elId) {
+    document.getElementById(elId).innerHTML = '';
+  }
 
-    function processFiles(fileList) {
-      Array.from(fileList).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          selectedFiles.push({ name: file.name, dataUrl: ev.target.result });
-          renderSelectedFiles();
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+  // ====== TABS ======
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.toggle('active', b.textContent.includes(tab === 'sender' ? 'Gửi' : 'Nhận'));
+    });
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.toggle('active', p.id === (tab === 'sender' ? 'senderPanel' : 'receiverPanel'));
+    });
+  }
 
-    function renderSelectedFiles() {
-      selectedFilesList.innerHTML = selectedFiles.map(f => 
-        `<span class="file-tag"><i class="fas fa-file"></i> ${f.name} <i class="fas fa-times" style="cursor:pointer; margin-left:6px;" data-name="${f.name}"></i></span>`
-      ).join('');
-      document.querySelectorAll('.file-tag .fa-times').forEach(icon => {
-        icon.addEventListener('click', (e) => {
-          const name = e.target.getAttribute('data-name');
-          selectedFiles = selectedFiles.filter(f => f.name !== name);
-          renderSelectedFiles();
+  // ====== SENDER: FILE HANDLING ======
+  function handleFileSelect(e) {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Tệp "' + file.name + '" vượt quá 10MB và đã bỏ qua.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        senderFiles.push({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          data: ev.target.result
         });
+        renderSenderFiles();
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  }
+
+  function renderSenderFiles() {
+    const list = document.getElementById('senderFileList');
+    if (senderFiles.length === 0) { list.innerHTML = ''; return; }
+    list.innerHTML = senderFiles.map((f, i) => `
+      <div class="file-item">
+        <i class="fas fa-file"></i>
+        <div class="file-info">
+          <div class="file-name">${f.name}</div>
+          <div class="file-size">${formatSize(f.size)} · ${f.type || 'Unknown'}</div>
+        </div>
+        <button class="file-remove" onclick="removeFile(${i})"><i class="fas fa-times"></i></button>
+      </div>
+    `).join('');
+  }
+
+  function removeFile(idx) {
+    senderFiles.splice(idx, 1);
+    renderSenderFiles();
+  }
+
+  // Drag & drop
+  const dz = document.getElementById('dropZone');
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    handleFileSelect({ target: { files: e.dataTransfer.files } });
+  });
+
+  // ====== CREATE SHARE ======
+  async function createShare() {
+    const text = document.getElementById('shareText').value.trim();
+    if (senderFiles.length === 0 && !text) {
+      alert('Vui lòng tải lên ít nhất 1 tệp hoặc nhập văn bản!');
+      return;
+    }
+    const btn = document.getElementById('createShareBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu dữ liệu...';
+    btn.disabled = true;
+
+    try {
+      await initDB();
+      const code = generateCode();
+      const payload = {
+        files: senderFiles,
+        text: text,
+        createdAt: new Date().toISOString()
+      };
+      await saveShare(code, payload);
+      currentShareCode = code;
+
+      document.getElementById('displayCode').textContent = code;
+      const qrWrap = document.getElementById('qrWrap');
+      qrWrap.innerHTML = '';
+      new QRCode(qrWrap, {
+        text: code,
+        width: 200,
+        height: 200,
+        colorDark: '#1e293b',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
       });
+      document.getElementById('senderResult').classList.remove('hidden');
+      btn.innerHTML = '<i class="fas fa-check"></i> Đã tạo chia sẻ!';
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi lưu dữ liệu: ' + err.message);
+      btn.innerHTML = '<i class="fas fa-lock"></i> Tạo Link & Mã QR';
+      btn.disabled = false;
     }
+  }
 
-    // ----- TẠO CHIA SẺ (NGƯỜI GỬI) -----
-    const generateBtn = document.getElementById('generateBtn');
-    const shareResult = document.getElementById('shareResult');
-    const shareLinkDisplay = document.getElementById('shareLinkDisplay');
-    const qrCodeContainer = document.getElementById('qrCodeContainer');
-    const saveConfirm = document.getElementById('saveConfirm');
-
-    function generateUniqueCode() {
-      return 's' + Date.now().toString(36) + Math.random().toString(36).substring(2,6);
+  function copyLink() {
+    const link = window.location.origin + window.location.pathname + '?code=' + currentShareCode;
+    navigator.clipboard.writeText(link).then(() => alert('Đã sao chép link!'));
+  }
+  function downloadQR() {
+    const canvas = document.querySelector('#qrWrap canvas');
+    if (!canvas) return;
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'share-qr-' + currentShareCode + '.png';
+    a.click();
+  }
+  function shareNative() {
+    const link = window.location.origin + window.location.pathname + '?code=' + currentShareCode;
+    if (navigator.share) {
+      navigator.share({ title: 'Chia sẻ an toàn', text: 'Mã chia sẻ: ' + currentShareCode, url: link });
+    } else {
+      copyLink();
     }
+  }
 
-    generateBtn.addEventListener('click', ()=>{
-      const textVal = textContent.value.trim();
-      if (selectedFiles.length === 0 && textVal === '') {
-        alert('Vui lòng chọn ít nhất một tệp hoặc nhập văn bản.');
-        return;
-      }
-      // Tạo mã duy nhất
-      const code = generateUniqueCode();
-      // Lưu chính xác dữ liệu vào kho
-      storeShareData(code, [...selectedFiles], textVal);
-      
-      const shareLink = `${window.location.origin}${window.location.pathname}?code=${code}`;
-      shareLinkDisplay.value = shareLink;
-      saveConfirm.textContent = `Đã lưu tệp thành công – Mã chia sẻ: ${code}`;
-      
-      // Tạo QR code
-      qrCodeContainer.innerHTML = ''; 
-      const canvas = document.createElement('canvas');
-      QRCode.toCanvas(canvas, shareLink, { width: 180, margin: 1 }, (error) => {
-        if (error) console.warn(error);
-      });
-      qrCodeContainer.appendChild(canvas);
-      shareResult.classList.remove('hidden');
-    });
-
-    // Sao chép link
-    document.getElementById('copyLinkBtn').addEventListener('click', ()=>{
-      navigator.clipboard.writeText(shareLinkDisplay.value).then(()=> alert('Đã sao chép link!'));
-    });
-    // Tải QR
-    document.getElementById('downloadQrBtn').addEventListener('click', ()=>{
-      const canvas = qrCodeContainer.querySelector('canvas');
-      if(canvas) {
-        const link = document.createElement('a');
-        link.download = 'qr-share.png';
-        link.href = canvas.toDataURL();
-        link.click();
-      }
-    });
-
-    // ----- PHẦN NGƯỜI NHẬN -----
-    const manualCodeInput = document.getElementById('manualCodeInput');
-    const fetchByCodeBtn = document.getElementById('fetchByCodeBtn');
-    const receiverStatus = document.getElementById('receiverStatus');
-    const receivedContent = document.getElementById('receivedContent');
-    const textPreview = document.getElementById('textPreview');
-    const receivedFilesList = document.getElementById('receivedFilesList');
-    let currentReceivedData = null;
-
-    function displayReceivedData(data) {
-      currentReceivedData = data;
-      textPreview.innerHTML = data.text ? `<strong>📝 Văn bản:</strong><br>${data.text.replace(/\n/g, '<br>')}` : '';
-      receivedFilesList.innerHTML = data.files.map((f, idx) => 
-        `<span class="file-tag"><i class="fas fa-paperclip"></i> ${f.name} <i class="fas fa-download" style="cursor:pointer; margin-left:6px;" data-idx="${idx}"></i></span>`
-      ).join('');
-      document.querySelectorAll('.fa-download[data-idx]').forEach(icon => {
-        icon.addEventListener('click', (e) => {
-          const idx = e.target.getAttribute('data-idx');
-          if(currentReceivedData?.files[idx]) {
-            downloadFile(currentReceivedData.files[idx].dataUrl, currentReceivedData.files[idx].name);
-          }
-        });
-      });
-      receivedContent.classList.remove('hidden');
+  // ====== RECEIVER: QR SCANNER ======
+  async function toggleCamera() {
+    const btnText = document.getElementById('camBtnText');
+    if (camRunning) {
+      if (html5QrCode) { await html5QrCode.stop(); html5QrCode = null; }
+      camRunning = false;
+      btnText.textContent = 'Bật Camera';
+      document.getElementById('reader').innerHTML = '';
+      return;
     }
-
-    function downloadFile(dataUrl, fileName) {
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = fileName;
-      a.click();
-    }
-
-    function fetchAndDisplay(code) {
-      if(!code) {
-        receiverStatus.innerHTML = '<span style="color:red;">Vui lòng nhập mã.</span>';
-        return;
-      }
-      const data = getShareData(code);
-      if(!data) {
-        receiverStatus.innerHTML = '<span style="color:#b91c1c;">❌ Mã không tồn tại hoặc đã hết hạn.</span>';
-        receivedContent.classList.add('hidden');
-        return;
-      }
-      receiverStatus.innerHTML = '<span style="color:#0f5c3b;">✅ Đã tìm thấy dữ liệu chia sẻ.</span>';
-      displayReceivedData(data);
-    }
-
-    fetchByCodeBtn.addEventListener('click', ()=>{
-      fetchAndDisplay(manualCodeInput.value.trim());
-    });
-
-    // Tải tất cả file
-    document.getElementById('downloadAllBtn').addEventListener('click', ()=>{
-      if(!currentReceivedData || !currentReceivedData.files.length) return;
-      currentReceivedData.files.forEach(f => downloadFile(f.dataUrl, f.name));
-    });
-
-    // ----- QUÉT QR (HTML5-QRCODE) -----
-    const startScanBtn = document.getElementById('startScanBtn');
-    const readerContainer = document.getElementById('readerContainer');
-    let html5QrCode = null;
-
-    function stopScanner() {
-      if(html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => {
-          readerContainer.innerHTML = '';
-          readerContainer.classList.add('hidden');
-        }).catch(err => console.warn);
-        html5QrCode = null;
-      }
-    }
-
-    startScanBtn.addEventListener('click', ()=>{
-      if(html5QrCode && html5QrCode.isScanning) {
-        stopScanner();
-        return;
-      }
-      readerContainer.classList.remove('hidden');
-      readerContainer.innerHTML = ''; 
-      const div = document.createElement('div');
-      div.id = 'qr-reader';
-      readerContainer.appendChild(div);
-      
-      html5QrCode = new Html5Qrcode("qr-reader");
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
+    try {
+      html5QrCode = new Html5Qrcode('reader');
+      await html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 200, height: 200 } },
         (decodedText) => {
-          // Quét thành công
-          stopScanner();
-          try {
-            const url = new URL(decodedText);
-            const codeParam = url.searchParams.get('code');
-            if(codeParam) {
-              manualCodeInput.value = codeParam;
-              fetchAndDisplay(codeParam);
-            } else {
-              alert('QR không chứa mã hợp lệ.');
-            }
-          } catch (e) {
-            // Có thể là mã thuần
-            manualCodeInput.value = decodedText;
-            fetchAndDisplay(decodedText);
+          if (decodedText && decodedText.length === 6 && /^\d{6}$/.test(decodedText)) {
+            html5QrCode.stop();
+            camRunning = false;
+            btnText.textContent = 'Bật Camera';
+            retrieveShare(decodedText);
           }
         },
-        (errorMessage) => { /* quét tiếp */ }
-      ).catch(err => {
-        alert('Không thể truy cập camera: ' + err);
-        stopScanner();
-      });
-    });
+        () => {}
+      );
+      camRunning = true;
+      btnText.textContent = 'Tắt Camera';
+    } catch (err) {
+      showAlert('receiverAlert', 'error', 'Không thể truy cập camera: ' + err.message);
+    }
+  }
 
-    // Kiểm tra nếu URL có tham số code khi tải trang
-    window.addEventListener('load', ()=>{
-      const params = new URLSearchParams(window.location.search);
-      const codeFromUrl = params.get('code');
-      if(codeFromUrl) {
-        // Chuyển sang tab nhận
-        tabReceiver.click();
-        manualCodeInput.value = codeFromUrl;
-        fetchAndDisplay(codeFromUrl);
+  // ====== RECEIVER: MANUAL RETRIEVE ======
+  async function manualRetrieve() {
+    const code = document.getElementById('manualCode').value.trim();
+    if (!/^\d{6}$/.test(code)) {
+      showAlert('receiverAlert', 'error', 'Mã không hợp lệ! Vui lòng nhập đúng 6 chữ số.');
+      return;
+    }
+    await retrieveShare(code);
+  }
+
+  async function retrieveShare(code) {
+    clearAlert('receiverAlert');
+    const content = document.getElementById('receiverContent');
+    content.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Đang đối chiếu dữ liệu...</p></div>';
+
+    try {
+      await initDB();
+      const record = await getShare(code);
+      if (!record) {
+        content.innerHTML = '';
+        showAlert('receiverAlert', 'error', 'Mã không tồn tại hoặc đã hết hạn!');
+        return;
       }
-    });
+      renderReceived(record.data, code);
+      showAlert('receiverAlert', 'success', 'Đã tìm thấy dữ liệu! Mã: ' + code);
+    } catch (err) {
+      content.innerHTML = '';
+      showAlert('receiverAlert', 'error', 'Lỗi truy xuất dữ liệu: ' + err.message);
+    }
+  }
 
-    // Dọn dẹp scanner khi rời trang
-    window.addEventListener('beforeunload', ()=>{ stopScanner(); });
-  })();
+  function renderReceived(data, code) {
+    const content = document.getElementById('receiverContent');
+    let html = '';
+    window._currentRetrievedCode = code;
+
+    if (data.text) {
+      html += `<div class="card">
+        <div class="card-title"><i class="fas fa-align-left"></i> Văn bản chia sẻ</div>
+        <div class="received-text">${escapeHtml(data.text)}</div>
+        <button class="btn btn-secondary" onclick="copyText(this)" style="width:auto;display:inline-flex;">
+          <i class="fas fa-copy"></i> Sao chép văn bản
+        </button>
+      </div>`;
+    }
+
+    if (data.files && data.files.length > 0) {
+      html += `<div class="card">
+        <div class="card-title"><i class="fas fa-folder-open"></i> Tệp đính kèm (${data.files.length})</div>
+        <div class="select-all-bar">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()"> <strong>Chọn tất cả</strong>
+          </label>
+          <button class="btn btn-primary" style="width:auto;padding:8px 20px;" onclick="downloadSelected()">
+            <i class="fas fa-download"></i> Tải đã chọn
+          </button>
+        </div>
+        <div class="received-files">`;
+      data.files.forEach((f, i) => {
+        html += `
+          <div class="received-item">
+            <input type="checkbox" class="file-check" data-index="${i}">
+            <i class="fas fa-file"></i>
+            <div class="info">
+              <div class="name">${escapeHtml(f.name)}</div>
+              <div class="meta">${formatSize(f.size)} · ${f.type || 'Unknown'}</div>
+            </div>
+            <button class="download-btn" onclick="downloadFile(${i})">
+              <i class="fas fa-download"></i> Tải
+            </button>
+          </div>`;
+      });
+      html += `</div></div>`;
+    } else if (!data.text) {
+      html = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Không có dữ liệu trong chia sẻ này.</p></div>';
+    }
+
+    content.innerHTML = html;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function copyText(btn) {
+    const text = document.querySelector('.received-text').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.innerHTML = '<i class="fas fa-check"></i> Đã sao chép';
+      setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i> Sao chép văn bản', 2000);
+    });
+  }
+
+  function toggleSelectAll() {
+    const checked = document.getElementById('selectAll').checked;
+    document.querySelectorAll('.file-check').forEach(cb => cb.checked = checked);
+  }
+
+  async function downloadFile(idx) {
+    const code = window._currentRetrievedCode || document.getElementById('manualCode').value.trim();
+    if (!code) return;
+    const record = await getShare(code);
+    if (!record || !record.data.files || !record.data.files[idx]) return;
+    const f = record.data.files[idx];
+    const a = document.createElement('a');
+    a.href = f.data;
+    a.download = f.name;
+    a.click();
+  }
+
+  async function downloadSelected() {
+    const code = window._currentRetrievedCode || document.getElementById('manualCode').value.trim();
+    if (!code) return;
+    const record = await getShare(code);
+    if (!record || !record.data.files) return;
+    const checks = document.querySelectorAll('.file-check:checked');
+    if (checks.length === 0) { alert('Vui lòng chọn ít nhất 1 tệp!'); return; }
+    checks.forEach(cb => {
+      const idx = parseInt(cb.dataset.index);
+      const f = record.data.files[idx];
+      const a = document.createElement('a');
+      a.href = f.data;
+      a.download = f.name;
+      a.click();
+    });
+  }
+
+  // Auto-open receiver from URL param
+  window.addEventListener('DOMContentLoaded', async () => {
+    await initDB();
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code && /^\d{6}$/.test(code)) {
+      switchTab('receiver');
+      document.getElementById('manualCode').value = code;
+      await retrieveShare(code);
+    }
+  });
 </script>
+
 </body>
 </html>
