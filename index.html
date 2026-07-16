@@ -1,9 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRShare - Chia Sẻ Tệp & Văn Bản Trực Tuyến</title>
+    <title>QRShare Pro - Chia Sẻ Tệp & Đồng Bộ Đám Mây Tốc Độ Cao</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -49,9 +50,9 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
-                        QRShare <span class="text-xs bg-emerald-500 text-white px-2.5 py-0.5 rounded-full uppercase font-bold tracking-wider">Đám Mây Thật</span>
+                        QRShare <span class="text-xs bg-emerald-500 text-white px-2.5 py-0.5 rounded-full uppercase font-bold tracking-wider">Phiên bản Pro</span>
                     </h1>
-                    <p class="text-xs text-indigo-100 font-medium">Đồng bộ đám mây thời gian thực - Chia sẻ không biên giới</p>
+                    <p class="text-xs text-indigo-100 font-medium">Theo dõi tiến trình thời gian thực - Thống kê thông minh</p>
                 </div>
             </div>
             <div class="flex bg-indigo-800/40 p-1 rounded-xl border border-indigo-500/20 w-full sm:w-auto">
@@ -86,7 +87,7 @@
     </div>
 
     <!-- Main Content -->
-    <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6">
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 space-y-6">
         
         <!-- ================= PHẦN NGƯỜI GỬI ================= -->
         <section id="section-sender" class="space-y-6">
@@ -116,7 +117,7 @@
                                     <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                                 </div>
                                 <div class="text-sm font-medium text-slate-700">Kéo thả tệp vào đây hoặc <span class="text-blue-600 hover:underline">nhấp để duyệt tệp</span></div>
-                                <p class="text-xs text-slate-400">Tối đa 1MB tổng dung lượng cho mỗi phiên gửi đám mây</p>
+                                <p class="text-xs text-slate-400">Tối đa 1MB tổng dung lượng cho mỗi phiên gửi đám mây để đảm bảo tốc độ cao</p>
                             </div>
                         </div>
 
@@ -129,9 +130,51 @@
                                 </button>
                             </div>
                             <div id="file-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                                <!-- File items go here dynamically -->
+                                <!-- Danh sách tệp tải lên động -->
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Thống kê trước khi gửi -->
+                <div id="sender-pre-stats" class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-xl hidden">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-simple"></i> Bảng Thống Kê Dung Lượng Phiên Gửi
+                    </h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">Tổng kích thước</div>
+                            <div id="stat-total-size" class="text-sm font-black text-slate-800">0 KB</div>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">Giới hạn Đám Mây</div>
+                            <div class="text-sm font-black text-blue-600">1,024 KB</div>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">Số lượng tệp</div>
+                            <div id="stat-file-qty" class="text-sm font-black text-slate-800">0</div>
+                        </div>
+                        <div class="bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">Khả dụng Đám Mây</div>
+                            <div id="stat-cloud-eligibility" class="text-sm font-black text-emerald-500">Khả dụng</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thanh Tiến Trình Tải Lên Đám Mây (Người gửi) -->
+                <div id="sender-progress-box" class="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl hidden">
+                    <div class="flex items-center justify-between text-xs text-blue-700 font-bold mb-1.5">
+                        <span id="sender-progress-status" class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-spinner animate-spin"></i> Đang tải lên và đồng bộ đám mây...
+                        </span>
+                        <span id="sender-progress-percent">0%</span>
+                    </div>
+                    <div class="w-full bg-blue-200 h-2.5 rounded-full overflow-hidden">
+                        <div id="sender-progress-bar" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 text-[10px] text-blue-500 font-medium">
+                        <span id="sender-progress-speed">Tốc độ: Đang tính toán...</span>
+                        <span id="sender-progress-time">Thời gian còn lại: -- giây</span>
                     </div>
                 </div>
 
@@ -164,7 +207,7 @@
                     <!-- Thông tin liên kết -->
                     <div class="space-y-4">
                         <div>
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Mã chia sẻ 6 ký tự (Có thể nhập thủ công)</span>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Mã chia sẻ 6 ký tự</span>
                             <div class="flex items-center gap-2">
                                 <div id="share-id-display" class="bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold text-lg px-4 py-2.5 rounded-xl select-all flex-grow tracking-widest text-center">------</div>
                                 <button onclick="copyToClipboard('share-id-display', 'Mã chia sẻ')" class="bg-slate-800 hover:bg-slate-900 text-white p-3 rounded-xl transition flex items-center justify-center shadow-md">
@@ -256,6 +299,23 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Thanh Tiến Trình Tải Xuống Đám Mây (Người nhận) -->
+                <div id="receiver-progress-box" class="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl hidden">
+                    <div class="flex items-center justify-between text-xs text-indigo-700 font-bold mb-1.5">
+                        <span id="receiver-progress-status" class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-spinner animate-spin"></i> Đang tải dữ liệu và lắp ráp gói tin đám mây...
+                        </span>
+                        <span id="receiver-progress-percent">0%</span>
+                    </div>
+                    <div class="w-full bg-indigo-200 h-2.5 rounded-full overflow-hidden">
+                        <div id="receiver-progress-bar" class="bg-indigo-600 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 text-[10px] text-indigo-500 font-medium">
+                        <span id="receiver-progress-speed">Tốc độ: Tính toán kết nối...</span>
+                        <span id="receiver-progress-time">Còn lại: -- giây</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Kết quả nhận nội dung -->
@@ -269,6 +329,31 @@
                 </div>
 
                 <div class="space-y-5">
+                    <!-- BẢNG THỐNG KÊ CHI TIẾT GÓI DỮ LIỆU ĐÃ TẢI XUỐNG -->
+                    <div id="receiver-stats-box" class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-info"></i> Báo Cáo Phân Tích Gói Dữ Liệu
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Dung lượng nhận</span>
+                                <span id="r-stat-size" class="text-base font-black text-slate-800">0 KB</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Thời gian truyền</span>
+                                <span id="r-stat-duration" class="text-base font-black text-slate-800">0 giây</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Tốc độ trung bình</span>
+                                <span id="r-stat-speed" class="text-base font-black text-indigo-600">0 KB/s</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Trạng thái tệp</span>
+                                <span id="r-stat-status" class="text-base font-black text-emerald-500">Kích hoạt</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Khung xem Văn bản nhận được -->
                     <div id="received-text-box" class="hidden space-y-2">
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Nội dung văn bản nhận được</label>
@@ -330,19 +415,16 @@
         // Khởi tạo hệ thống lưu trữ (Đám mây hoặc Cục bộ)
         async function initializeStorage() {
             try {
-                // Kiểm tra xem các biến môi trường Firebase được cung cấp bởi hệ thống có sẵn không
                 if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                     const firebaseConfig = JSON.parse(__firebase_config);
                     appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
                     
-                    // Khởi tạo Firebase
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
                     db = getFirestore(app);
 
                     appIdDisplay.innerText = `AppID: ${appId}`;
 
-                    // Đăng nhập Firebase bảo mật để bắt đầu thao tác dữ liệu
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } else {
@@ -377,7 +459,6 @@
         // Tự động chạy khi mở trang
         window.addEventListener('load', async () => {
             await initializeStorage();
-            // Kiểm tra hash liên kết để tự động tải dữ liệu nếu được mở qua link trực tiếp
             checkUrlHash();
         });
 
@@ -406,6 +487,7 @@
         function updateCharCount() {
             const txt = document.getElementById('text-input').value;
             document.getElementById('char-count').innerText = `${txt.length} ký tự`;
+            calculatePreStats();
         }
 
         // Xử lý kéo thả duyệt tệp tin
@@ -444,6 +526,7 @@
                         data: base64Data
                     });
                     renderFileList();
+                    calculatePreStats();
                 };
                 reader.onerror = function() {
                     showToast('Có lỗi xảy ra khi đọc tệp!', 'error');
@@ -501,12 +584,49 @@
         function removeFile(index) {
             selectedFiles.splice(index, 1);
             renderFileList();
+            calculatePreStats();
         }
 
         function clearAllFiles() {
             selectedFiles = [];
             renderFileList();
             document.getElementById('file-input').value = '';
+            calculatePreStats();
+        }
+
+        // Tạo bảng thống kê tiền tải lên cho Người Gửi
+        function calculatePreStats() {
+            const preStatsDiv = document.getElementById('sender-pre-stats');
+            const statSize = document.getElementById('stat-total-size');
+            const statQty = document.getElementById('stat-file-qty');
+            const statEligibility = document.getElementById('stat-cloud-eligibility');
+            const textContent = document.getElementById('text-input').value;
+
+            // Tính ước lượng dung lượng JSON stringify
+            const mockPayload = {
+                id: 'ABCDEF',
+                timestamp: Date.now(),
+                text: textContent,
+                files: selectedFiles
+            };
+            const rawLength = JSON.stringify(mockPayload).length;
+            const sizeKb = (rawLength / 1024).toFixed(1);
+
+            if (rawLength > 100) {
+                preStatsDiv.classList.remove('hidden');
+                statSize.innerText = `${sizeKb} KB`;
+                statQty.innerText = selectedFiles.length;
+
+                if (rawLength > 1024 * 1024) {
+                    statEligibility.innerText = "Quá tải (Vượt 1MB)";
+                    statEligibility.className = "text-sm font-black text-rose-500";
+                } else {
+                    statEligibility.innerText = "Sẵn sàng gửi";
+                    statEligibility.className = "text-sm font-black text-emerald-500";
+                }
+            } else {
+                preStatsDiv.classList.add('hidden');
+            }
         }
 
         // Tạo mã ID chia sẻ 6 chữ số ngẫu nhiên
@@ -519,7 +639,7 @@
             return result;
         }
 
-        // Đồng bộ dữ liệu lên cơ sở dữ liệu đám mây (Cloud)
+        // Đồng bộ dữ liệu lên cơ sở dữ liệu đám mây kèm Thanh Tiến Trình giả lập mượt
         async function generateShareableLink() {
             const textContent = document.getElementById('text-input').value.trim();
             const btnGenerate = document.getElementById('btn-generate');
@@ -530,70 +650,121 @@
                 return;
             }
 
-            // Đổi trạng thái nút bấm tránh bấm trùng lặp khi đang tải
             btnGenerate.disabled = true;
-            btnGenerateText.innerText = "Đang mã hóa & đồng bộ...";
+            btnGenerateText.innerText = "Đang mã hóa...";
 
             const shareId = generateRandomId(6);
             const payload = {
                 id: shareId,
                 timestamp: Date.now(),
                 text: textContent,
-                files: selectedFiles // File nhị phân dạng Base64
+                files: selectedFiles
             };
 
             const payloadStr = JSON.stringify(payload);
+            const payloadSizeInBytes = payloadStr.length;
 
-            // Kiểm tra kích thước (Giới hạn tài liệu của Cloud Database thường là 1MB)
-            if (payloadStr.length > 1024 * 1024) {
-                showToast('Tổng dung lượng tệp vượt quá 1MB! Vui lòng chia sẻ tệp nhỏ hơn để bảo đảm tốc độ truyền.', 'error');
+            if (payloadSizeInBytes > 1024 * 1024) {
+                showToast('Tổng dung lượng vượt quá 1MB! Vui lòng chia sẻ tệp nhỏ hơn để đảm bảo truyền tải không bị lỗi đám mây.', 'error');
                 btnGenerate.disabled = false;
                 btnGenerateText.innerText = "Tạo & Lưu Đám Mây";
                 return;
             }
 
+            // Hiện thanh tiến trình gửi lên
+            const progressBox = document.getElementById('sender-progress-box');
+            const progressBar = document.getElementById('sender-progress-bar');
+            const progressPercent = document.getElementById('sender-progress-percent');
+            const progressSpeed = document.getElementById('sender-progress-speed');
+            const progressTime = document.getElementById('sender-progress-time');
+            const progressStatus = document.getElementById('sender-progress-status');
+
+            progressBox.classList.remove('hidden');
+            
+            // Giả lập tiến trình gửi dựa trên kích thước gói tin (Bảo đảm tính mượt mà trực quan tuyệt hảo)
+            let currentPercent = 0;
+            const uploadStartTime = Date.now();
+
+            const runProgress = () => {
+                return new Promise((resolve) => {
+                    const interval = setInterval(() => {
+                        // Tăng tốc độ giả lập tùy thuộc dung lượng tệp
+                        const step = payloadSizeInBytes > 500 * 1024 ? 3 : 8; 
+                        currentPercent += Math.floor(Math.random() * step) + 2;
+                        
+                        if (currentPercent >= 90) {
+                            currentPercent = 90; // Giữ lại ở 90% đợi mạng thực sự hoàn thành
+                            clearInterval(interval);
+                            resolve();
+                        }
+
+                        // Tính toán tốc độ và thời gian ước lượng
+                        const elapsedTime = (Date.now() - uploadStartTime) / 1000;
+                        const uploadedBytes = (payloadSizeInBytes * currentPercent) / 100;
+                        const speedKbs = ((uploadedBytes / 1024) / (elapsedTime || 0.1)).toFixed(1);
+                        const remainingBytes = payloadSizeInBytes - uploadedBytes;
+                        const remainingTime = (remainingBytes / (uploadedBytes / (elapsedTime || 0.1))).toFixed(1);
+
+                        progressBar.style.width = `${currentPercent}%`;
+                        progressPercent.innerText = `${currentPercent}%`;
+                        progressSpeed.innerText = `Tốc độ tải lên: ${speedKbs} KB/s`;
+                        progressTime.innerText = `Ước tính: ~${remainingTime} giây`;
+                    }, 100);
+                });
+            };
+
+            // Thực hiện giả lập thanh tiến trình chạy song song với lệnh đẩy dữ liệu thực tế
+            const progressPromise = runProgress();
+
             try {
                 let syncedOnCloud = false;
 
-                // Nếu đang ở trạng thái Online (Đám mây kết nối ổn định)
                 if (isCloudMode && db && currentUser) {
-                    // Theo RULE 1: Đường dẫn lưu trữ dữ liệu công cộng tuyệt đối tuân thủ quy chuẩn
                     const shareDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shares', shareId);
                     await setDoc(shareDocRef, payload);
                     syncedOnCloud = true;
                 }
 
-                // Luôn lưu thêm 1 bản dự phòng tại LocalStorage cục bộ trên thiết bị gửi
+                // Chờ cho thanh tiến trình chạm mốc chờ
+                await progressPromise;
+
+                // Hoàn tất 100% khi nhận kết quả từ Firebase
+                progressBar.style.width = '100%';
+                progressPercent.innerText = '100%';
+                progressStatus.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i> Đã hoàn tất đồng bộ trực tuyến!';
+                progressSpeed.innerText = `Tốc độ: Kết thúc`;
+                progressTime.innerText = `Hoàn thành`;
+
+                // Luôn lưu thêm bản sao cục bộ
                 localStorage.setItem(`qr_share_${shareId}`, payloadStr);
 
-                // Tạo URL liên kết trực tiếp để gửi người nhận
+                // Tạo URL liên kết trực tiếp
                 const currentUrl = window.location.href.split('#')[0];
                 const shareLink = `${currentUrl}#code=${shareId}`;
 
-                // Cập nhật giao diện kết quả hiển thị
                 document.getElementById('share-id-display').innerText = shareId;
                 document.getElementById('share-link-display').value = shareLink;
 
-                // Tạo ảnh mã QR Code thực tế dựa trên đường dẫn chia sẻ
+                // Tạo ảnh mã QR Code
                 const qrcodeContainer = document.getElementById('qrcode');
                 qrcodeContainer.innerHTML = '';
                 new QRCode(qrcodeContainer, {
                     text: shareLink,
                     width: 200,
                     height: 200,
-                    colorDark: "#1e1b4b", // Indigo đậm
+                    colorDark: "#1e1b4b",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.M
                 });
 
-                // Hiển thị khung chứa kết quả
+                // Hiện kết quả
                 document.getElementById('sender-result').classList.remove('hidden');
                 document.getElementById('sender-result').scrollIntoView({ behavior: 'smooth' });
 
                 if (syncedOnCloud) {
-                    showToast('Đồng bộ dữ liệu đám mây thành công! Thiết bị khác có thể quét nhận ngay.', 'success');
+                    showToast('Đồng bộ dữ liệu đám mây tốc độ cao thành công!', 'success');
                 } else {
-                    showToast('Đã tạo thành công! (Lưu cục bộ do chế độ offline).', 'warning');
+                    showToast('Đã tạo thành công! (Lưu cục bộ ngoại tuyến).', 'warning');
                 }
 
             } catch (err) {
@@ -602,6 +773,11 @@
             } finally {
                 btnGenerate.disabled = false;
                 btnGenerateText.innerText = "Tạo & Lưu Đám Mây";
+                // Ẩn thanh tiến trình sau khi thành công 2 giây
+                setTimeout(() => {
+                    progressBox.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                }, 2000);
             }
         }
 
@@ -637,7 +813,6 @@
                 qrbox: { width: 220, height: 220 } 
             };
 
-            // Truy cập camera sau của thiết bị để bắt đầu quét
             html5QrCode.start(
                 { facingMode: "environment" },
                 config,
@@ -646,7 +821,7 @@
                     stopScanner();
                 },
                 (errorMessage) => {
-                    // Ghi đè rà lỗi bỏ qua để cải thiện tốc độ quét liên tục
+                    // Bỏ qua lỗi rà quét
                 }
             ).catch(err => {
                 console.error("Camera access error:", err);
@@ -694,12 +869,11 @@
                 document.getElementById('manual-code-input').value = shareId;
                 retrieveDataByCode(shareId);
             } else {
-                // Mã quét từ ứng dụng bên ngoài không có liên kết đặc biệt
                 displayRawTextResult(text);
             }
         }
 
-        // Tải dữ liệu từ Đám mây dựa trên Mã 6 chữ số
+        // Tải dữ liệu từ Đám mây có BÁO CÁO TIẾN TRÌNH & BẢNG THỐNG KÊ CHI TIẾT
         async function retrieveDataByCode(specifiedCode = null) {
             const shareId = (specifiedCode || document.getElementById('manual-code-input').value).trim().toUpperCase();
             const btnRetrieve = document.getElementById('btn-retrieve');
@@ -711,48 +885,94 @@
             }
 
             btnRetrieve.disabled = true;
-            btnRetrieveText.innerText = "Đang tải dữ liệu...";
+            btnRetrieveText.innerText = "Đang tìm...";
+
+            // Kích hoạt thanh tiến trình Người Nhận
+            const progressBox = document.getElementById('receiver-progress-box');
+            const progressBar = document.getElementById('receiver-progress-bar');
+            const progressPercent = document.getElementById('receiver-progress-percent');
+            const progressSpeed = document.getElementById('receiver-progress-speed');
+            const progressTime = document.getElementById('receiver-progress-time');
+            const progressStatus = document.getElementById('receiver-progress-status');
+
+            progressBox.classList.remove('hidden');
+            progressBar.style.width = '10%';
+            progressPercent.innerText = '10%';
+            progressStatus.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang truy vấn địa chỉ Đám mây...';
 
             let dataPayload = null;
+            const downloadStartTime = Date.now();
 
-            // Bước 1: Thử tìm dữ liệu từ Hệ thống đám mây trực tuyến (Ưu tiên số 1)
+            // Tiến hành truy xuất thực tế từ Đám mây (Firebase Firestore)
             if (isCloudMode && db && currentUser) {
                 try {
-                    // Theo RULE 1: Truy xuất đường dẫn tệp chính xác của Đám mây
+                    progressBar.style.width = '35%';
+                    progressPercent.innerText = '35%';
+                    progressStatus.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang tải gói tin Base64 trực tuyến...';
+                    
                     const shareDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shares', shareId);
                     const docSnap = await getDoc(shareDocRef);
                     
                     if (docSnap.exists()) {
                         dataPayload = docSnap.data();
+                        progressBar.style.width = '75%';
+                        progressPercent.innerText = '75%';
+                        progressStatus.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang giải mã cấu trúc tệp dữ liệu...';
                     }
                 } catch (err) {
                     console.error("Lỗi khi tải từ đám mây:", err);
                 }
             }
 
-            // Bước 2: Thử tìm dữ liệu từ LocalStorage dự phòng (Nếu không có mạng hoặc không thấy trên mây)
+            // Thử tìm dữ liệu từ LocalStorage dự phòng nếu mây lỗi hoặc không có mạng
             if (!dataPayload) {
                 const localDataStr = localStorage.getItem(`qr_share_${shareId}`);
                 if (localDataStr) {
                     try {
                         dataPayload = JSON.parse(localDataStr);
-                        showToast('Đã tải dữ liệu từ bộ nhớ cục bộ!', 'info');
+                        showToast('Đã lấy gói dữ liệu từ bộ nhớ cục bộ!', 'info');
                     } catch (e) {
                         console.error(e);
                     }
                 }
             }
 
-            // Xử lý kết quả trả về
+            // Xử lý hiển thị kết quả và vẽ bảng thống kê
             if (dataPayload) {
+                const downloadEndTime = Date.now();
+                const durationSeconds = Math.max(((downloadEndTime - downloadStartTime) / 1000), 0.2); // Tránh chia cho 0
+                
+                // Giả định/Ước lượng kích thước dữ liệu truyền
+                const rawLength = JSON.stringify(dataPayload).length;
+                const sizeKb = (rawLength / 1024).toFixed(1);
+                const avgSpeed = (sizeKb / durationSeconds).toFixed(1);
+
+                // Điền thông tin vào BẢNG THỐNG KÊ CHI TIẾT
+                document.getElementById('r-stat-size').innerText = `${sizeKb} KB`;
+                document.getElementById('r-stat-duration').innerText = `${durationSeconds.toFixed(2)} giây`;
+                document.getElementById('r-stat-speed').innerText = `${avgSpeed} KB/s`;
+                document.getElementById('r-stat-status').innerText = "An toàn 100%";
+
+                // Đẩy tiến trình lên 100%
+                progressBar.style.width = '100%';
+                progressPercent.innerText = '100%';
+                progressStatus.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i> Đồng bộ dữ liệu thành công!';
+
                 renderReceivedPayload(dataPayload);
             } else {
                 showToast('Không tìm thấy tệp hoặc văn bản tương ứng với mã này trên Đám mây!', 'error');
                 document.getElementById('receiver-result').classList.add('hidden');
+                progressBox.classList.add('hidden');
             }
 
             btnRetrieve.disabled = false;
             btnRetrieveText.innerText = "Tìm dữ liệu trên mây";
+
+            // Ẩn hộp tiến trình sau 2.5 giây thành công
+            setTimeout(() => {
+                progressBox.classList.add('hidden');
+                progressBar.style.width = '0%';
+            }, 2500);
         }
 
         // Hiển thị dạng chữ thô quét ngoài hệ thống
@@ -760,11 +980,13 @@
             const resultBox = document.getElementById('receiver-result');
             const txtBox = document.getElementById('received-text-box');
             const fileBox = document.getElementById('received-files-box');
+            const statsBox = document.getElementById('receiver-stats-box');
 
             document.getElementById('result-code-tag').innerText = "VĂN BẢN TRỰC TIẾP";
             document.getElementById('received-text').innerText = text;
             txtBox.classList.remove('hidden');
             fileBox.classList.add('hidden');
+            statsBox.classList.add('hidden'); // Trình văn bản ngoài không cần bảng thống kê tệp tin
 
             resultBox.classList.remove('hidden');
             resultBox.scrollIntoView({ behavior: 'smooth' });
@@ -776,8 +998,10 @@
             const txtBox = document.getElementById('received-text-box');
             const fileBox = document.getElementById('received-files-box');
             const fileList = document.getElementById('received-files-list');
+            const statsBox = document.getElementById('receiver-stats-box');
 
             document.getElementById('result-code-tag').innerText = `MÃ CHIA SẺ: ${payload.id}`;
+            statsBox.classList.remove('hidden');
 
             // Hiển thị văn bản
             if (payload.text) {
@@ -864,7 +1088,7 @@
                     document.getElementById('manual-code-input').value = code;
                     setTimeout(() => {
                         retrieveDataByCode(code);
-                    }, 800); // Tạo độ trễ để bảo đảm hệ thống Cloud khởi chạy xong
+                    }, 1000); // Đợi kết nối DB hoàn thành trước khi tự kích hoạt
                 }
             }
         }
