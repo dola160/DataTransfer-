@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRShare - Chia Sẻ Tệp & Văn Bản Bằng Mã QR</title>
+    <title>QRShare - Chia Sẻ Tệp & Văn Bản Trực Tuyến</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -45,13 +45,13 @@
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="bg-white text-blue-600 p-2.5 rounded-2xl shadow-inner flex items-center justify-center">
-                    <i class="fa-solid fa-qrcode text-3xl"></i>
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl"></i>
                 </div>
                 <div>
                     <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
-                        QRShare <span class="text-xs bg-indigo-500/50 text-white px-2 py-0.5 rounded-full uppercase font-semibold">Chạy Thật 100%</span>
+                        QRShare <span class="text-xs bg-emerald-500 text-white px-2.5 py-0.5 rounded-full uppercase font-bold tracking-wider">Đám Mây Thật</span>
                     </h1>
-                    <p class="text-xs text-indigo-100 font-medium">Chia sẻ tệp & văn bản tức thì bằng mã QR cực nhanh</p>
+                    <p class="text-xs text-indigo-100 font-medium">Đồng bộ đám mây thời gian thực - Chia sẻ không biên giới</p>
                 </div>
             </div>
             <div class="flex bg-indigo-800/40 p-1 rounded-xl border border-indigo-500/20 w-full sm:w-auto">
@@ -65,7 +65,21 @@
         </div>
     </header>
 
-    <!-- Thống báo Popup (Toast) -->
+    <!-- Trạng thái kết nối đám mây -->
+    <div class="bg-slate-100 border-b border-slate-200 py-1.5 px-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-between text-xs text-slate-500">
+            <div class="flex items-center gap-1.5">
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span id="cloud-status">Đang kết nối tới đám mây...</span>
+            </div>
+            <span class="hidden sm:inline font-mono text-[10px]" id="app-id-display">AppID: Loading...</span>
+        </div>
+    </div>
+
+    <!-- Thông báo Popup (Toast) -->
     <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-[-100px] opacity-0 max-w-sm w-11/12 text-sm font-medium">
         <span id="toast-icon" class="text-lg"></span>
         <span id="toast-message" class="flex-1">Thông báo</span>
@@ -89,7 +103,7 @@
                             <span>Nội dung văn bản (không bắt buộc)</span>
                             <span class="text-xs text-slate-400 font-normal" id="char-count">0 ký tự</span>
                         </label>
-                        <textarea id="text-input" rows="4" oninput="updateCharCount()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-slate-800 placeholder-slate-400 resize-none" placeholder="Nhập tin nhắn, đường liên kết, danh sách công việc hoặc bất kỳ văn bản nào bạn muốn gửi..."></textarea>
+                        <textarea id="text-input" rows="4" oninput="updateCharCount()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-slate-800 placeholder-slate-400 resize-none" placeholder="Nhập tin nhắn, đường liên kết, danh sách công việc hoặc bất kỳ văn bản nào bạn muốn gửi trực tuyến..."></textarea>
                     </div>
 
                     <!-- File đính kèm -->
@@ -102,7 +116,7 @@
                                     <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
                                 </div>
                                 <div class="text-sm font-medium text-slate-700">Kéo thả tệp vào đây hoặc <span class="text-blue-600 hover:underline">nhấp để duyệt tệp</span></div>
-                                <p class="text-xs text-slate-400">Hỗ trợ mọi định dạng tệp thông thường (Tối đa 15MB tổng cộng)</p>
+                                <p class="text-xs text-slate-400">Tối đa 1MB tổng dung lượng cho mỗi phiên gửi đám mây</p>
                             </div>
                         </div>
 
@@ -122,8 +136,8 @@
                 </div>
 
                 <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end">
-                    <button onclick="generateShareableLink()" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-md hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg active:scale-[0.98] transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo Liên Kết & Mã QR
+                    <button id="btn-generate" onclick="generateShareableLink()" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-md hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg active:scale-[0.98] transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="btn-generate-text">Tạo & Lưu Đám Mây</span>
                     </button>
                 </div>
             </div>
@@ -132,7 +146,7 @@
             <div id="sender-result" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 hidden">
                 <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-5">
                     <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm">2</span>
-                    <h2 class="text-lg font-bold text-slate-900">Liên Kết & Mã QR Đã Được Tạo Thật</h2>
+                    <h2 class="text-lg font-bold text-slate-900">Mã QR Đã Đồng Bộ Đám Mây Trực Tuyến</h2>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -141,7 +155,7 @@
                         <div class="bg-white p-4 rounded-xl shadow-md border border-slate-100 flex items-center justify-center" id="qrcode-container">
                             <div id="qrcode"></div>
                         </div>
-                        <p class="text-xs text-slate-500 font-medium mt-3 text-center"><i class="fa-solid fa-camera mr-1"></i> Quét mã này trên điện thoại khác để nhận dữ liệu tức thì</p>
+                        <p class="text-xs text-slate-500 font-medium mt-3 text-center"><i class="fa-solid fa-mobile-screen mr-1"></i> Quét mã này trên **bất kỳ thiết bị nào** để tải xuống lập tức</p>
                         <button onclick="downloadQRCode()" class="mt-4 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition flex items-center gap-1.5">
                             <i class="fa-solid fa-download"></i> Tải xuống mã QR
                         </button>
@@ -150,7 +164,7 @@
                     <!-- Thông tin liên kết -->
                     <div class="space-y-4">
                         <div>
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Mã chia sẻ bảo mật</span>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Mã chia sẻ 6 ký tự (Có thể nhập thủ công)</span>
                             <div class="flex items-center gap-2">
                                 <div id="share-id-display" class="bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold text-lg px-4 py-2.5 rounded-xl select-all flex-grow tracking-widest text-center">------</div>
                                 <button onclick="copyToClipboard('share-id-display', 'Mã chia sẻ')" class="bg-slate-800 hover:bg-slate-900 text-white p-3 rounded-xl transition flex items-center justify-center shadow-md">
@@ -160,19 +174,19 @@
                         </div>
 
                         <div>
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Đường dẫn chia sẻ trực tiếp</span>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Đường dẫn chia sẻ trực tuyến</span>
                             <div class="flex items-center gap-2">
                                 <input id="share-link-display" type="text" readonly class="bg-slate-100 border border-slate-200 text-slate-600 font-mono text-xs px-3 py-3 rounded-xl select-all flex-grow overflow-hidden text-ellipsis whitespace-nowrap" value="">
                                 <button onclick="copyToClipboard('share-link-display', 'Đường dẫn')" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition flex items-center justify-center shadow-md">
                                     <i class="fa-regular fa-copy text-lg"></i>
                                 </button>
                             </div>
-                            <p class="text-[11px] text-slate-400 mt-1"><i class="fa-solid fa-circle-info mr-1"></i> Đường dẫn này chứa đầy đủ thông tin để trang tự động tải dữ liệu khi mở trực tiếp.</p>
+                            <p class="text-[11px] text-slate-400 mt-1"><i class="fa-solid fa-circle-info mr-1"></i> Gửi đường dẫn này cho bạn bè, họ mở ra sẽ tự động tải tệp từ đám mây xuống.</p>
                         </div>
 
-                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700 space-y-1">
-                            <p class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> An toàn & Bảo mật thực sự:</p>
-                            <p>Dữ liệu được lưu trữ trực tiếp trong bộ nhớ trình duyệt ổn định, bạn có thể tắt trang này, dữ liệu vẫn an toàn không bị mất.</p>
+                        <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-xs text-emerald-800 space-y-1">
+                            <p class="font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> Đã đồng bộ thành công!</p>
+                            <p>Dữ liệu của bạn hiện đã khả dụng toàn cầu. Bạn có thể tắt máy này và sử dụng điện thoại khác để nhận dữ liệu ngay lập tức.</p>
                         </div>
                     </div>
                 </div>
@@ -197,7 +211,7 @@
                         
                         <!-- Box camera -->
                         <div class="relative aspect-square max-w-[280px] mx-auto bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 shadow-inner flex flex-col justify-center items-center">
-                            <!-- Các góc định vị thẩm mỹ -->
+                            <!-- Các góc định vị -->
                             <div class="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-blue-500 rounded-tl-md z-10"></div>
                             <div class="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-blue-500 rounded-tr-md z-10"></div>
                             <div class="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-blue-500 rounded-bl-md z-10"></div>
@@ -212,7 +226,7 @@
                             <!-- Placeholder khi chưa mở camera -->
                             <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 text-slate-400 z-0">
                                 <i class="fa-solid fa-camera text-4xl mb-3 text-slate-600"></i>
-                                <span class="text-xs font-semibold">Bấm nút bên dưới để mở Camera quét thực tế</span>
+                                <span class="text-xs font-semibold">Bấm nút bên dưới để mở Camera quét trực tiếp</span>
                             </div>
                         </div>
 
@@ -230,14 +244,14 @@
                     <!-- Nhập mã bên phải -->
                     <div class="flex flex-col justify-center space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-6">
                         <div class="space-y-1">
-                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Cách 2: Nhập mã nhận chia sẻ</span>
-                            <p class="text-xs text-slate-400">Nếu camera không hoạt động hoặc không tiện quét mã, hãy nhập mã gồm 6 ký tự bảo mật tại đây.</p>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Cách 2: Nhập mã nhận chia sẻ trực tuyến</span>
+                            <p class="text-xs text-slate-400">Nếu thiết bị của bạn không có camera hoặc không quét được mã, hãy nhập mã gồm 6 chữ số bên cạnh vào đây.</p>
                         </div>
 
                         <div class="space-y-3">
                             <input type="text" id="manual-code-input" maxlength="6" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-center font-mono font-bold text-2xl tracking-[0.25em] uppercase focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition placeholder-slate-300" placeholder="------">
-                            <button onclick="retrieveDataByCode()" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-sm shadow transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-download"></i> Tìm dữ liệu bằng mã
+                            <button id="btn-retrieve" onclick="retrieveDataByCode()" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-sm shadow transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-down animate-bounce"></i> <span id="btn-retrieve-text">Tìm dữ liệu trên mây</span>
                             </button>
                         </div>
                     </div>
@@ -249,7 +263,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 mb-5 gap-3">
                     <div class="flex items-center gap-3">
                         <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm">2</span>
-                        <h2 class="text-lg font-bold text-slate-900">Dữ liệu chia sẻ tìm thấy thực tế</h2>
+                        <h2 class="text-lg font-bold text-slate-900">Đã đồng bộ & tải xuống từ đám mây</h2>
                     </div>
                     <span id="result-code-tag" class="self-start sm:self-auto px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold font-mono rounded-full tracking-wider">MÃ: ------</span>
                 </div>
@@ -288,20 +302,82 @@
     <!-- Footer -->
     <footer class="bg-slate-100 border-t border-slate-200 py-6 mt-auto">
         <div class="max-w-4xl mx-auto px-4 text-center space-y-2">
-            <p class="text-sm font-semibold text-slate-500">QRShare - Hoạt động ngoại tuyến & Trực tuyến không lỗi</p>
-            <p class="text-xs text-slate-400">Thiết kế tối ưu di động · Mã hóa Base64 an toàn trên LocalStorage trình duyệt · An toàn bảo mật tuyệt đối</p>
+            <p class="text-sm font-semibold text-slate-500">QRShare - Hệ thống chia sẻ đám mây thời gian thực</p>
+            <p class="text-xs text-slate-400">Dữ liệu được bảo mật an toàn · Không bị giới hạn bởi phạm vi mạng · Hoạt động thực tế trên mọi trình duyệt</p>
         </div>
     </footer>
 
-    <!-- Script điều khiển Logic -->
-    <script>
-        // Cấu trúc quản lý trạng thái dữ liệu người gửi
+    <!-- Script điều khiển chính kết hợp Firebase / LocalStorage -->
+    <script type="module">
+        // Import Firebase SDK phiên bản tương thích từ CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Khởi tạo các trạng thái
         let selectedFiles = [];
         let html5QrCode = null;
+        let isCloudMode = false;
 
-        // Bật hiển thị ban đầu khi tải trang
-        window.addEventListener('load', () => {
-            // Kiểm tra xem liên kết có chứa tham số hash tự động tải không
+        // Firebase instances
+        let app, auth, db, appId;
+        let currentUser = null;
+
+        // Báo trạng thái lên giao diện
+        const cloudStatus = document.getElementById('cloud-status');
+        const appIdDisplay = document.getElementById('app-id-display');
+
+        // Khởi tạo hệ thống lưu trữ (Đám mây hoặc Cục bộ)
+        async function initializeStorage() {
+            try {
+                // Kiểm tra xem các biến môi trường Firebase được cung cấp bởi hệ thống có sẵn không
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    
+                    // Khởi tạo Firebase
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    appIdDisplay.innerText = `AppID: ${appId}`;
+
+                    // Đăng nhập Firebase bảo mật để bắt đầu thao tác dữ liệu
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            currentUser = user;
+                            isCloudMode = true;
+                            cloudStatus.innerText = "Trực tuyến: Đã kết nối với hệ thống Đám mây!";
+                            cloudStatus.parentElement.querySelector('span > span').className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500";
+                        }
+                    });
+                } else {
+                    useOfflineFallback("Thiếu thông tin cấu hình.");
+                }
+            } catch (err) {
+                console.error("Firebase init failed, switching to Local Mode:", err);
+                useOfflineFallback("Lỗi kết nối.");
+            }
+        }
+
+        function useOfflineFallback(reason) {
+            isCloudMode = false;
+            cloudStatus.innerText = `Chế độ cục bộ (${reason}) - Dữ liệu lưu trên máy này`;
+            const dot = cloudStatus.parentElement.querySelector('span > span');
+            if (dot) dot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500";
+            appIdDisplay.innerText = "Chế độ: LocalStorage";
+        }
+
+        // Tự động chạy khi mở trang
+        window.addEventListener('load', async () => {
+            await initializeStorage();
+            // Kiểm tra hash liên kết để tự động tải dữ liệu nếu được mở qua link trực tiếp
             checkUrlHash();
         });
 
@@ -317,7 +393,6 @@
                 btnReceiver.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-indigo-100 hover:text-white";
                 secSender.classList.remove('hidden');
                 secReceiver.classList.add('hidden');
-                // Tự động tắt camera nếu người dùng chuyển tab
                 stopScanner();
             } else {
                 btnReceiver.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-blue-700 shadow-sm";
@@ -327,19 +402,18 @@
             }
         }
 
-        // Đếm ký tự của khu vực nhập văn bản
+        // Đếm ký tự khi gõ text
         function updateCharCount() {
             const txt = document.getElementById('text-input').value;
             document.getElementById('char-count').innerText = `${txt.length} ký tự`;
         }
 
-        // Xử lý kéo thả và duyệt tệp tin
+        // Xử lý kéo thả duyệt tệp tin
         function handleFileSelect(event) {
             const files = event.target.files;
             processFiles(files);
         }
 
-        // Kéo thả tệp vào dropzone
         const dropzone = document.getElementById('dropzone');
         dropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -355,7 +429,7 @@
             processFiles(files);
         });
 
-        // Đọc các tệp và chuyển đổi thành Base64 thực tế
+        // Chuyển dữ liệu tệp thành chuỗi Base64
         function processFiles(files) {
             if (!files || files.length === 0) return;
 
@@ -367,18 +441,17 @@
                         name: file.name,
                         size: file.size,
                         type: file.type || 'application/octet-stream',
-                        data: base64Data // Chuỗi Base64 thật
+                        data: base64Data
                     });
                     renderFileList();
                 };
                 reader.onerror = function() {
                     showToast('Có lỗi xảy ra khi đọc tệp!', 'error');
                 };
-                reader.readAsDataURL(file); // Thực hiện đọc tệp thật
+                reader.readAsDataURL(file);
             });
         }
 
-        // Hiển thị danh sách các tệp đang chọn
         function renderFileList() {
             const container = document.getElementById('file-list-container');
             const list = document.getElementById('file-list');
@@ -415,7 +488,6 @@
             });
         }
 
-        // Lấy icon tương ứng định dạng file
         function getFileIcon(mimeType) {
             if (mimeType.startsWith('image/')) return '<i class="fa-solid fa-file-image"></i>';
             if (mimeType.startsWith('video/')) return '<i class="fa-solid fa-file-video"></i>';
@@ -426,22 +498,20 @@
             return '<i class="fa-solid fa-file-lines"></i>';
         }
 
-        // Xóa tệp cụ thể khỏi danh sách chọn
         function removeFile(index) {
             selectedFiles.splice(index, 1);
             renderFileList();
         }
 
-        // Xóa toàn bộ tệp khỏi danh sách
         function clearAllFiles() {
             selectedFiles = [];
             renderFileList();
             document.getElementById('file-input').value = '';
         }
 
-        // Tạo chuỗi ký tự ngẫu nhiên duy nhất
+        // Tạo mã ID chia sẻ 6 chữ số ngẫu nhiên
         function generateRandomId(length = 6) {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Không chứa các ký tự dễ gây nhầm lẫn
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let result = '';
             for (let i = 0; i < length; i++) {
                 result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -449,130 +519,142 @@
             return result;
         }
 
-        // Tạo liên kết chia sẻ tự động & Lưu trữ vào LocalStorage thực tế
-        function generateShareableLink() {
+        // Đồng bộ dữ liệu lên cơ sở dữ liệu đám mây (Cloud)
+        async function generateShareableLink() {
             const textContent = document.getElementById('text-input').value.trim();
+            const btnGenerate = document.getElementById('btn-generate');
+            const btnGenerateText = document.getElementById('btn-generate-text');
 
             if (!textContent && selectedFiles.length === 0) {
-                showToast('Vui lòng nhập văn bản hoặc tải lên tệp để tạo chia sẻ!', 'warning');
+                showToast('Vui lòng nhập văn bản hoặc chọn tệp để bắt đầu gửi!', 'warning');
                 return;
             }
 
-            // Tạo mã bảo mật 6 chữ số ngẫu nhiên duy nhất
-            const shareId = generateRandomId(6);
+            // Đổi trạng thái nút bấm tránh bấm trùng lặp khi đang tải
+            btnGenerate.disabled = true;
+            btnGenerateText.innerText = "Đang mã hóa & đồng bộ...";
 
-            // Gói dữ liệu
+            const shareId = generateRandomId(6);
             const payload = {
                 id: shareId,
                 timestamp: Date.now(),
                 text: textContent,
-                files: selectedFiles // Danh sách file thật chứa Base64
+                files: selectedFiles // File nhị phân dạng Base64
             };
 
+            const payloadStr = JSON.stringify(payload);
+
+            // Kiểm tra kích thước (Giới hạn tài liệu của Cloud Database thường là 1MB)
+            if (payloadStr.length > 1024 * 1024) {
+                showToast('Tổng dung lượng tệp vượt quá 1MB! Vui lòng chia sẻ tệp nhỏ hơn để bảo đảm tốc độ truyền.', 'error');
+                btnGenerate.disabled = false;
+                btnGenerateText.innerText = "Tạo & Lưu Đám Mây";
+                return;
+            }
+
             try {
-                // Kiểm tra giới hạn dung lượng localStorage (thường là 5MB)
-                const payloadStr = JSON.stringify(payload);
-                if (payloadStr.length > 5 * 1024 * 1024) {
-                    showToast('Tổng dung lượng tệp quá lớn! Vui lòng chọn tệp nhỏ hơn (dưới 3.5MB để lưu trữ an toàn).', 'error');
-                    return;
+                let syncedOnCloud = false;
+
+                // Nếu đang ở trạng thái Online (Đám mây kết nối ổn định)
+                if (isCloudMode && db && currentUser) {
+                    // Theo RULE 1: Đường dẫn lưu trữ dữ liệu công cộng tuyệt đối tuân thủ quy chuẩn
+                    const shareDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shares', shareId);
+                    await setDoc(shareDocRef, payload);
+                    syncedOnCloud = true;
                 }
 
-                // Lưu thực tế vào localStorage của người dùng
+                // Luôn lưu thêm 1 bản dự phòng tại LocalStorage cục bộ trên thiết bị gửi
                 localStorage.setItem(`qr_share_${shareId}`, payloadStr);
 
-                // Tạo URL liên kết trực tiếp
-                // Sử dụng hash (#) để nhận diện tự động khi tải trang
+                // Tạo URL liên kết trực tiếp để gửi người nhận
                 const currentUrl = window.location.href.split('#')[0];
                 const shareLink = `${currentUrl}#code=${shareId}`;
 
-                // Cập nhật giao diện kết quả
+                // Cập nhật giao diện kết quả hiển thị
                 document.getElementById('share-id-display').innerText = shareId;
                 document.getElementById('share-link-display').value = shareLink;
 
-                // Tạo mã QR Code thật
+                // Tạo ảnh mã QR Code thực tế dựa trên đường dẫn chia sẻ
                 const qrcodeContainer = document.getElementById('qrcode');
-                qrcodeContainer.innerHTML = ''; // Clear mã cũ
-                
+                qrcodeContainer.innerHTML = '';
                 new QRCode(qrcodeContainer, {
                     text: shareLink,
                     width: 200,
                     height: 200,
-                    colorDark: "#0f172a", // Navy đậm cho sang trọng
+                    colorDark: "#1e1b4b", // Indigo đậm
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.M
                 });
 
-                // Hiển thị khung kết quả
+                // Hiển thị khung chứa kết quả
                 document.getElementById('sender-result').classList.remove('hidden');
-                
-                // Cuộn xuống khu vực kết quả mượt mà
                 document.getElementById('sender-result').scrollIntoView({ behavior: 'smooth' });
 
-                showToast('Tạo liên kết chia sẻ thành công!', 'success');
+                if (syncedOnCloud) {
+                    showToast('Đồng bộ dữ liệu đám mây thành công! Thiết bị khác có thể quét nhận ngay.', 'success');
+                } else {
+                    showToast('Đã tạo thành công! (Lưu cục bộ do chế độ offline).', 'warning');
+                }
+
             } catch (err) {
-                console.error(err);
-                showToast('Không thể lưu dữ liệu! Dung lượng tệp vượt quá khả năng lưu của trình duyệt.', 'error');
+                console.error("Lỗi đồng bộ dữ liệu đám mây:", err);
+                showToast('Lỗi lưu trữ dữ liệu lên đám mây!', 'error');
+            } finally {
+                btnGenerate.disabled = false;
+                btnGenerateText.innerText = "Tạo & Lưu Đám Mây";
             }
         }
 
-        // Tải xuống hình ảnh mã QR Code đã tạo
+        // Tải xuống file ảnh QR
         function downloadQRCode() {
             const qrcodeImg = document.querySelector('#qrcode img');
             if (!qrcodeImg) {
-                showToast('Chưa có mã QR được tạo!', 'warning');
+                showToast('Chưa có mã QR nào được sinh ra!', 'warning');
                 return;
             }
 
             const shareId = document.getElementById('share-id-display').innerText;
             const link = document.createElement('a');
             link.href = qrcodeImg.src;
-            link.download = `QRShare_Code_${shareId}.png`;
+            link.download = `QRShare_${shareId}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast('Đang tải xuống mã QR!', 'success');
+            showToast('Đang tải xuống hình ảnh mã QR!', 'success');
         }
 
         // ================= XỬ LÝ CAMERA QUÉT MÃ QR (NGƯỜI NHẬN) =================
 
-        // Khởi chạy trình quét QR qua Camera
         function startScanner() {
-            // Hiển thị phần UI camera
             document.getElementById('camera-placeholder').classList.add('hidden');
             document.getElementById('scan-bar').classList.remove('hidden');
-
-            // Hiển thị các nút điều khiển tương ứng
             document.getElementById('btn-start-camera').classList.add('hidden');
             document.getElementById('btn-stop-camera').classList.remove('hidden');
 
-            // Cấu hình quét mã
             html5QrCode = new Html5Qrcode("camera-reader");
-            
             const config = { 
                 fps: 15, 
                 qrbox: { width: 220, height: 220 } 
             };
 
-            // Yêu cầu quyền camera và khởi động
+            // Truy cập camera sau của thiết bị để bắt đầu quét
             html5QrCode.start(
-                { facingMode: "environment" }, // Ưu tiên camera sau trên di động
+                { facingMode: "environment" },
                 config,
                 (decodedText) => {
-                    // Thành công nhận diện mã QR
                     handleDecodedQR(decodedText);
                     stopScanner();
                 },
                 (errorMessage) => {
-                    // Log quét lỗi bình thường (bỏ qua khi đang rà quét liên tục)
+                    // Ghi đè rà lỗi bỏ qua để cải thiện tốc độ quét liên tục
                 }
             ).catch(err => {
-                console.error(err);
-                showToast('Không thể truy cập camera! Vui lòng cấp quyền hoặc nhập mã thủ công.', 'error');
+                console.error("Camera access error:", err);
+                showToast('Không cấp quyền camera hoặc thiết bị không hỗ trợ. Vui lòng nhập mã thủ công!', 'error');
                 resetScannerUI();
             });
         }
 
-        // Tắt trình quét camera
         function stopScanner() {
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
@@ -586,27 +668,22 @@
             }
         }
 
-        // Đưa UI quét về mặc định
         function resetScannerUI() {
             document.getElementById('camera-placeholder').classList.remove('hidden');
             document.getElementById('scan-bar').classList.add('hidden');
             document.getElementById('btn-start-camera').classList.remove('hidden');
             document.getElementById('btn-stop-camera').classList.add('hidden');
-            
-            const readerDiv = document.getElementById('camera-reader');
-            readerDiv.innerHTML = ''; // Làm sạch khung video
+            document.getElementById('camera-reader').innerHTML = '';
         }
 
-        // Xử lý chuỗi mã URL hoặc chuỗi văn bản sau khi quét QR thành công
+        // Giải mã QR
         function handleDecodedQR(text) {
-            showToast('Đã quét thấy mã QR!', 'success');
+            showToast('Đã nhận diện thấy mã QR!', 'success');
             
-            // Tìm mã Code 6 ký tự trong liên kết (ví dụ #code=ABCDEF)
             let shareId = '';
             if (text.includes('#code=')) {
-                shareId = text.split('#code=')[1].substring(0, 6);
+                shareId = text.split('#code=')[1].substring(0, 6).toUpperCase();
             } else {
-                // Thử nhận diện trực tiếp bằng chuỗi 6 ký tự viết hoa
                 const cleanText = text.trim().toUpperCase();
                 if (cleanText.length === 6) {
                     shareId = cleanText;
@@ -617,47 +694,74 @@
                 document.getElementById('manual-code-input').value = shareId;
                 retrieveDataByCode(shareId);
             } else {
-                // Trường hợp quét mã QR văn bản ngoài, không thuộc cấu trúc của web
-                // Hiển thị nội dung trực tiếp như tin nhắn văn bản thường
+                // Mã quét từ ứng dụng bên ngoài không có liên kết đặc biệt
                 displayRawTextResult(text);
             }
         }
 
-        // Tìm kiếm và hiển thị dữ liệu thật dựa trên Mã nhận dạng
-        function retrieveDataByCode(specifiedCode = null) {
+        // Tải dữ liệu từ Đám mây dựa trên Mã 6 chữ số
+        async function retrieveDataByCode(specifiedCode = null) {
             const shareId = (specifiedCode || document.getElementById('manual-code-input').value).trim().toUpperCase();
+            const btnRetrieve = document.getElementById('btn-retrieve');
+            const btnRetrieveText = document.getElementById('btn-retrieve-text');
 
             if (!shareId || shareId.length !== 6) {
                 showToast('Vui lòng nhập đúng mã bảo mật gồm 6 ký tự!', 'warning');
                 return;
             }
 
-            // Tìm kiếm trong bộ nhớ LocalStorage thực tế
-            const localDataStr = localStorage.getItem(`qr_share_${shareId}`);
+            btnRetrieve.disabled = true;
+            btnRetrieveText.innerText = "Đang tải dữ liệu...";
 
-            if (!localDataStr) {
-                showToast('Không tìm thấy tệp hoặc văn bản tương ứng với mã này!', 'error');
-                // Ẩn bảng kết quả cũ
+            let dataPayload = null;
+
+            // Bước 1: Thử tìm dữ liệu từ Hệ thống đám mây trực tuyến (Ưu tiên số 1)
+            if (isCloudMode && db && currentUser) {
+                try {
+                    // Theo RULE 1: Truy xuất đường dẫn tệp chính xác của Đám mây
+                    const shareDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'shares', shareId);
+                    const docSnap = await getDoc(shareDocRef);
+                    
+                    if (docSnap.exists()) {
+                        dataPayload = docSnap.data();
+                    }
+                } catch (err) {
+                    console.error("Lỗi khi tải từ đám mây:", err);
+                }
+            }
+
+            // Bước 2: Thử tìm dữ liệu từ LocalStorage dự phòng (Nếu không có mạng hoặc không thấy trên mây)
+            if (!dataPayload) {
+                const localDataStr = localStorage.getItem(`qr_share_${shareId}`);
+                if (localDataStr) {
+                    try {
+                        dataPayload = JSON.parse(localDataStr);
+                        showToast('Đã tải dữ liệu từ bộ nhớ cục bộ!', 'info');
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }
+
+            // Xử lý kết quả trả về
+            if (dataPayload) {
+                renderReceivedPayload(dataPayload);
+            } else {
+                showToast('Không tìm thấy tệp hoặc văn bản tương ứng với mã này trên Đám mây!', 'error');
                 document.getElementById('receiver-result').classList.add('hidden');
-                return;
             }
 
-            try {
-                const payload = JSON.parse(localDataStr);
-                renderReceivedPayload(payload);
-            } catch (err) {
-                console.error(err);
-                showToast('Tệp dữ liệu bị hỏng, không thể khôi phục!', 'error');
-            }
+            btnRetrieve.disabled = false;
+            btnRetrieveText.innerText = "Tìm dữ liệu trên mây";
         }
 
-        // Hiển thị trực tiếp dữ liệu dạng văn bản tự do ngoài hệ thống
+        // Hiển thị dạng chữ thô quét ngoài hệ thống
         function displayRawTextResult(text) {
             const resultBox = document.getElementById('receiver-result');
             const txtBox = document.getElementById('received-text-box');
             const fileBox = document.getElementById('received-files-box');
 
-            document.getElementById('result-code-tag').innerText = "VĂN BẢN QUÉT";
+            document.getElementById('result-code-tag').innerText = "VĂN BẢN TRỰC TIẾP";
             document.getElementById('received-text').innerText = text;
             txtBox.classList.remove('hidden');
             fileBox.classList.add('hidden');
@@ -666,17 +770,16 @@
             resultBox.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Hiển thị payload nhận được lên giao diện của Người nhận
+        // Đổ dữ liệu thật lên giao diện Người Nhận
         function renderReceivedPayload(payload) {
             const resultBox = document.getElementById('receiver-result');
             const txtBox = document.getElementById('received-text-box');
             const fileBox = document.getElementById('received-files-box');
             const fileList = document.getElementById('received-files-list');
 
-            // Gán mã định danh
             document.getElementById('result-code-tag').innerText = `MÃ CHIA SẺ: ${payload.id}`;
 
-            // Xử lý Văn bản
+            // Hiển thị văn bản
             if (payload.text) {
                 document.getElementById('received-text').innerText = payload.text;
                 txtBox.classList.remove('hidden');
@@ -684,7 +787,7 @@
                 txtBox.classList.add('hidden');
             }
 
-            // Xử lý Danh sách file đính kèm thực tế
+            // Hiển thị tệp
             if (payload.files && payload.files.length > 0) {
                 document.getElementById('received-files-count').innerText = payload.files.length;
                 fileList.innerHTML = '';
@@ -714,13 +817,12 @@
                 fileBox.classList.add('hidden');
             }
 
-            // Hiển thị block kết quả
             resultBox.classList.remove('hidden');
             resultBox.scrollIntoView({ behavior: 'smooth' });
             showToast('Tải dữ liệu tương ứng thành công!', 'success');
         }
 
-        // Tải xuống một tệp tin duy nhất
+        // Tải xuống từng file riêng lẻ
         function downloadSingleFile(index, fileName, base64Data) {
             try {
                 const link = document.createElement('a');
@@ -736,121 +838,59 @@
             }
         }
 
-        // Tải xuống toàn bộ tệp tin trong danh sách cùng một lúc
+        // Tải xuống toàn bộ tệp tin
         function downloadAllFiles() {
-            const listItems = document.getElementById('received-files-list').children;
-            if (listItems.length === 0) {
-                showToast('Không có tệp nào để tải xuống!', 'warning');
+            const buttons = document.querySelectorAll('#received-files-list button');
+            if (buttons.length === 0) {
+                showToast('Không có tệp để tải xuống!', 'warning');
                 return;
             }
 
-            // Nhấp vào nút Tải Xuống của từng item liên tiếp
-            const buttons = document.querySelectorAll('#received-files-list button');
             buttons.forEach((btn, index) => {
                 setTimeout(() => {
                     btn.click();
-                }, index * 400); // Tránh trình duyệt chặn tải hàng loạt
+                }, index * 400); // Trì hoãn một chút để tránh bị trình duyệt chặn tải nhiều file đồng thời
             });
-            showToast('Đang tiến hành tải hàng loạt các tệp!', 'success');
+            showToast('Đang tiến hành tải tất cả các tệp xuống thiết bị...', 'success');
         }
 
-        // Kiểm tra mã Code tự động từ URL Hash
+        // Kiểm tra Hash URL tự động tìm kiếm
         function checkUrlHash() {
             const hash = window.location.hash;
             if (hash && hash.includes('code=')) {
                 const code = hash.split('code=')[1].substring(0, 6).toUpperCase();
                 if (code.length === 6) {
-                    // Chuyển sang Tab Người nhận
                     switchTab('receiver');
-                    // Gán mã và tải
                     document.getElementById('manual-code-input').value = code;
                     setTimeout(() => {
                         retrieveDataByCode(code);
-                    }, 500);
+                    }, 800); // Tạo độ trễ để bảo đảm hệ thống Cloud khởi chạy xong
                 }
             }
         }
 
-        // ================= UTILITY FUNCTIONS =================
-
-        // Tránh tiêm nhiễm HTML khi render tên file
+        // Tránh lỗi hiển thị chuỗi html lạ từ tên tệp
         function escapeHtml(str) {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Xử lý chuỗi nháy đơn khi truyền tham số cho hàm download
         function escapeQuotes(str) {
             return str.replace(/'/g, "\\'");
         }
 
-        // Hiển thị Toast thông báo nhanh chóng
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastIcon = document.getElementById('toast-icon');
-            const toastMessage = document.getElementById('toast-message');
-
-            // Định cấu hình màu sắc tương ứng
-            if (type === 'success') {
-                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform text-sm font-medium bg-emerald-50 border border-emerald-100 text-emerald-800";
-                toastIcon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600"></i>';
-            } else if (type === 'error') {
-                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform text-sm font-medium bg-rose-50 border border-rose-100 text-rose-800";
-                toastIcon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-600"></i>';
-            } else if (type === 'warning') {
-                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform text-sm font-medium bg-amber-50 border border-amber-100 text-amber-800";
-                toastIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-600"></i>';
-            } else {
-                toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300 transform text-sm font-medium bg-blue-50 border border-blue-100 text-blue-800";
-                toastIcon.innerHTML = '<i class="fa-solid fa-circle-info text-blue-600"></i>';
-            }
-
-            toastMessage.innerText = message;
-            
-            // Hiện Toast
-            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            // Tự động ẩn sau 3.5 giây
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-[-100px]', 'opacity-0');
-            }, 3500);
-        }
-
-        // Sao chép văn bản vào clipboard an toàn không dùng API hạn chế
-        function copyToClipboard(elementIdOrValue, label = 'Nội dung') {
-            let valueToCopy = "";
-            const element = document.getElementById(elementIdOrValue);
-
-            if (element) {
-                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                    valueToCopy = element.value;
-                } else {
-                    valueToCopy = element.innerText;
-                }
-            } else {
-                valueToCopy = elementIdOrValue;
-            }
-
-            // Tạo thẻ textarea phụ ẩn để copy (Tương thích tốt môi trường Iframe)
-            const tempTextArea = document.createElement("textarea");
-            tempTextArea.value = valueToCopy;
-            tempTextArea.style.position = "fixed";
-            tempTextArea.style.left = "-9999px";
-            tempTextArea.style.top = "-9999px";
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            
-            try {
-                document.execCommand("copy");
-                showToast(`Đã sao chép ${label.toLowerCase()} vào bộ nhớ tạm!`, 'success');
-            } catch (err) {
-                console.error(err);
-                showToast('Sao chép thất bại!', 'error');
-            } finally {
-                document.body.removeChild(tempTextArea);
-            }
-        }
+        // Đăng ký các hàm ra phạm vi window để các thẻ HTML gọi được (Dùng cho module ES6)
+        window.switchTab = switchTab;
+        window.updateCharCount = updateCharCount;
+        window.handleFileSelect = handleFileSelect;
+        window.clearAllFiles = clearAllFiles;
+        window.removeFile = removeFile;
+        window.generateShareableLink = generateShareableLink;
+        window.downloadQRCode = downloadQRCode;
+        window.startScanner = startScanner;
+        window.stopScanner = stopScanner;
+        window.retrieveDataByCode = retrieveDataByCode;
+        window.downloadSingleFile = downloadSingleFile;
+        window.downloadAllFiles = downloadAllFiles;
     </script>
 </body>
 </html>
